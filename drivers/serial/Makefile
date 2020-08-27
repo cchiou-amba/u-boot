@@ -75,3 +75,5 @@ obj-$(CONFIG_XEN_SERIAL) += serial_xen.o
 ifndef CONFIG_SPL_BUILD
 obj-$(CONFIG_USB_TTY) += usbtty.o
 endif
+
+obj-$(CONFIG_AMBARELLA_SERIAL) += serial_ambarella.o

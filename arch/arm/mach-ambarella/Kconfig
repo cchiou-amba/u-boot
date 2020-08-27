@@ -1,0 +1,40 @@
+if ARCH_AMBARELLA
+
+# board/<vendor>/common/* and board/<vendor>/<board>/*
+config SYS_VENDOR
+	default "ambarella"
+
+# arch/<arch>/cpu/<cpu>/<soc> and mach-<soc>
+config SYS_SOC
+	default "ambarella"
+
+config ARCH_AMBARELLA_CV22
+	def_bool n
+
+config ARCH_AMBARELLA_CV25
+	def_bool n
+
+config ARCH_AMBARELLA_S6LM
+	def_bool n
+
+choice
+	prompt "Ambarella board select"
+
+config TARGET_S6LM_DEVKIT
+	bool "Ambarella S6L devkit"
+	select ARCH_AMBARELLA_S6LM
+	help
+	Ambarella International LP
+
+config TARGET_CV25_DEVKIT
+	bool "Ambarella CV25 devkit"
+	select ARCH_AMBARELLA_CV25
+	help
+	Ambarella International LP
+
+endchoice
+
+source "board/ambarella/s6lm_devkit/Kconfig"
+source "board/ambarella/cv25_devkit/Kconfig"
+
+endif

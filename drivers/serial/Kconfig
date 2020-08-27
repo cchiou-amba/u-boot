@@ -829,6 +829,11 @@ config XEN_SERIAL
 	  If built without DM support, then requires Xen
 	  to be built with CONFIG_VERBOSE_DEBUG.
 
+config AMBARELLA_SERIAL
+	bool "MediaTek High-speed UART support"
+	help
+		aaaa
+
 choice
 	prompt "Console port"
 	default 8xx_CONS_SMC1

@@ -86,6 +86,8 @@ machine-$(CONFIG_ARCH_ZYNQ)		+= zynq
 machine-$(CONFIG_ARCH_ZYNQMP)		+= zynqmp
 machine-$(CONFIG_ARCH_ZYNQMP_R5)	+= zynqmp-r5
 
+machine-$(CONFIG_ARCH_AMBARELLA)	+= ambarella
+
 machdirs := $(patsubst %,arch/arm/mach-%/,$(machine-y))
 
 PLATFORM_CPPFLAGS += $(patsubst %,-I$(srctree)/%include,$(machdirs))

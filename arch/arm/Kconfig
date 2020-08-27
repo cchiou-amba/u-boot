@@ -1619,6 +1619,10 @@ config TARGET_COLIBRI_PXA270
 	bool "Support colibri_pxa270"
 	select CPU_PXA
 
+config ARCH_AMBARELLA
+	bool "Support Ambarella SOC"
+	select ARM64
+
 config ARCH_UNIPHIER
 	bool "Socionext UniPhier SoCs"
 	select BOARD_LATE_INIT
@@ -1914,6 +1918,8 @@ source "arch/arm/mach-imx/Kconfig"
 source "arch/arm/mach-nexell/Kconfig"
 
 source "board/armltd/total_compute/Kconfig"
+
+source "arch/arm/mach-ambarella/Kconfig"
 
 source "board/bosch/shc/Kconfig"
 source "board/bosch/guardian/Kconfig"

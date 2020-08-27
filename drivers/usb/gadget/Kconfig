@@ -105,6 +105,12 @@ config CI_UDC
 	  Say Y here to enable device controller functionality of the
 	  ChipIdea driver.
 
+config AMBARELLA_UDC
+	bool "Ambarella USB device controller"
+	select USB_GADGET_DUALSPEED
+	help
+		Ambarella International LP.
+
 config USB_GADGET_VBUS_DRAW
 	int "Maximum VBUS Power usage (2-500 mA)"
 	range 2 500

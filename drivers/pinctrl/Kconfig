@@ -284,6 +284,12 @@ config ASPEED_AST2500_PINCTRL
 	  uses Generic Pinctrl framework and is compatible with the Linux
 	  driver, i.e. it uses the same device tree configuration.
 
+config PINCTRL_AMBARELLA
+	bool "Ambarella pinctrl driver"
+	depends on DM && PINCTRL_FULL
+	help
+	  Ambarella Inc.
+
 endif
 
 source "drivers/pinctrl/broadcom/Kconfig"

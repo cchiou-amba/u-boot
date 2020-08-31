@@ -9,6 +9,12 @@ CONFIG_BOARD_LATE_INIT=y
 CONFIG_ARCH_AMBARELLA=y
 
 #
+# No EXT_DTB, specify a device tree
+#
+CONFIG_DEFAULT_DEVICE_TREE="ambarella_cv25_hazelnut"
+CONFIG_OF_LIST="ambarella_cv25_hazelnut ambarella_cv25m_pinenut"
+
+#
 # Compatiable with AMBOOT
 #
 CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK=y

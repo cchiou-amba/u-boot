@@ -975,8 +975,12 @@ dtb-$(CONFIG_TARGET_GE_BX50V3) += \
 	imx6q-b650v3.dtb \
 	imx6q-b450v3.dtb
 
-dtb-$(CONFIG_ARCH_AMBARELLA) +=	\
+dtb-$(CONFIG_ARCH_AMBARELLA_S6LM) +=	\
 	ambarella_s6lm_pineapple.dtb
+
+dtb-$(CONFIG_ARCH_AMBARELLA_CV25) +=	\
+	ambarella_cv25_hazelnut.dtb \
+	ambarella_cv25m_pinenut.dtb \
 
 dtb-$(CONFIG_TARGET_MX53PPD) += imx53-ppd.dtb
 

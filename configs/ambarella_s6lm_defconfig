@@ -9,6 +9,11 @@ CONFIG_BOARD_LATE_INIT=y
 CONFIG_ARCH_AMBARELLA=y
 
 #
+# dts for EVK
+#
+CONFIG_DEFAULT_DEVICE_TREE="ambarella_s6lm_pineapple"
+
+#
 # Compatiable with AMBOOT
 #
 CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK=y

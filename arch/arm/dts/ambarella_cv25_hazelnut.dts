@@ -61,13 +61,6 @@
 			phandle = <0x3f>;
 		};
 
-		cavalry_reserved: cavalry@0x60000000 {
-			compatible = "shared-dma-pool";
-			reusable;
-			reg = <0x60000000 0x20000000>;
-			linux,phandle = <0x4b>;
-			phandle = <0x4b>;
-		};
 	};
 
 	vp_module: vp_module {

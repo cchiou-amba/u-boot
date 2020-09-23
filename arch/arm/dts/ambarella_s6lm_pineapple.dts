@@ -55,8 +55,8 @@
 			compatible = "shared-dma-pool";
 			reusable;
 			reg = <0x20000000 0x20000000>;
-			linux,phandle = <0x3e>;
-			phandle = <0x3e>;
+			linux,phandle = <0x40>;
+			phandle = <0x40>;
 		};
 	};
 
@@ -71,11 +71,6 @@
 	pmu {
 		compatible = "arm,cortex-a53-pmu";
 		interrupts = <0x0 0x4 0x4 0x0 0x5 0x4 0x0 0x6 0x4 0x0 0x7 0x4>;
-	};
-
-	dram@0xdffe0000 {
-		compatible = "ambarella,dram";
-		reg = <0xdffe0000 0x8000>;
 	};
 
 	cpus {
@@ -288,8 +283,8 @@
 			clock-frequency = <0x1e8480>;
 			clocks = <0x11>;
 			#pwm-cells = <0x3>;
-			linux,phandle = <0x3f>;
-			phandle = <0x3f>;
+			linux,phandle = <0x41>;
+			phandle = <0x41>;
 		};
 
 		pwm1: pwm@e400c000 {
@@ -707,8 +702,8 @@
 			pwm0_pins_a: pwm0@0 {
 				reg = <0x0>;
 				amb,pinmux-ids = <0x100c>;
-				linux,phandle = <0x40>;
-				phandle = <0x40>;
+				linux,phandle = <0x42>;
+				phandle = <0x42>;
 			};
 
 			pwm0_pins_b: pwm0@1 {
@@ -1124,19 +1119,11 @@
 			dmas = <0x17 0x1 0x17 0x2>;
 			dma-names = "tx", "rx";
 			status = "ok";
-			cs-gpios = <0x10 0x4 0x0 0x10 0x5 0x0>;
+			cs-gpios = <0x10 0x4 0x0>;
 
 			ambvin0@0 {
 				compatible = "ambarella,ambvin";
 				reg = <0x0>;
-				spi-max-frequency = <0xf4240>;
-				spi-cpha;
-				spi-cpol;
-			};
-
-			ambvin1@0 {
-				compatible = "ambarella,ambvin";
-				reg = <0x1>;
 				spi-max-frequency = <0xf4240>;
 				spi-cpha;
 				spi-cpol;
@@ -1298,6 +1285,7 @@
 			compatible = "ambarella,sec-scratchpad";
 			reg = <0xe8001000 0x1000>;
 			amb,secure-ctrl-bit = <0x1f>;
+			amb,secure-reg-ro = <0xe80010a0 0xc 0xe80010b4 0x4>;
 		};
 	};
 
@@ -1312,6 +1300,7 @@
 			compatible = "ambarella,rct", "syscon";
 			reg = <0xed080000 0x1000>;
 			amb,secure-ctrl-bit = <0x44>;
+			amb,secure-reg-ro = <0xed080000 0x8 0xed080034 0x4 0xed08008c 0x4 0xed0800dc 0x10 0xed080100 0x1c 0xed080148 0x4 0xed080174 0xc 0xed0801f4 0x4 0xed080220 0xc 0xed080264 0x14 0xed0802dc 0x10 0xed0803f8 0x8 0xed0804f8 0x4 0xed08070c 0x8 0xed080794 0x4>;
 			linux,phandle = <0x9>;
 			phandle = <0x9>;
 		};
@@ -1382,6 +1371,7 @@
 			rct-regmap = <0x9>;
 			pinctrl-names;
 			pinctrl-0;
+			clocks = <0x3e>;
 		};
 
 		voutc1 {
@@ -1390,11 +1380,12 @@
 			interrupts = <0x0 0x58 0x1>;
 			interrupt-names = "vout1";
 			rct-regmap = <0x9>;
+			clocks = <0x3f>;
 		};
 
 		ambcma {
 			compatible = "ambarella,cma";
-			memory-region = <0x3e>;
+			memory-region = <0x40>;
 		};
 	};
 
@@ -1428,9 +1419,9 @@
 		pwm_bl@0 {
 			compatible = "pwm-backlight";
 			reg = <0x0>;
-			pwms = <0x3f 0x0 0x9c40 0x0>;
+			pwms = <0x41 0x0 0x9c40 0x0>;
 			pinctrl-names = "default";
-			pinctrl-0 = <0x40>;
+			pinctrl-0 = <0x42>;
 			brightness-levels = <0x0 0x4 0x8 0x10 0x20 0x40 0x80 0xff>;
 			default-brightness-level = <0x7>;
 			status = "disabled";
@@ -1547,15 +1538,15 @@
 			reg = <0xed080164 0x4 0xed080168 0x4 0xed080150 0x4 0xed080154 0x4 0xed080170 0x4 0x0 0x0>;
 			clocks = <0x29>;
 			clock-output-names = "pll_out_hdmi";
-			assigned-clocks = <0x41>;
+			assigned-clocks = <0x3f>;
 			assigned-clock-rates = <0x1017df80>;
 			amb,extra-pre-scaler;
 			amb,frac-mode;
 			amb,ctrl2-val = <0x30520000>;
 			amb,ctrl3-val = <0x88004>;
 			amb,min-vco = <0x9c4>;
-			linux,phandle = <0x41>;
-			phandle = <0x41>;
+			linux,phandle = <0x3f>;
+			phandle = <0x3f>;
 		};
 
 		pll_out_vo2: pll_out_vo2 {
@@ -1564,12 +1555,12 @@
 			reg = <0xed0800c0 0x4 0xed0800c4 0x4 0xed08013c 0x4 0xed080140 0x4 0xed0800c8 0x4 0x0 0x0>;
 			clocks = <0x29>;
 			clock-output-names = "pll_out_vo2";
-			assigned-clocks = <0x42>;
+			assigned-clocks = <0x3e>;
 			assigned-clock-rates = <0x16e3600>;
 			amb,extra-pre-scaler;
 			amb,frac-mode;
-			linux,phandle = <0x42>;
-			phandle = <0x42>;
+			linux,phandle = <0x3e>;
+			phandle = <0x3e>;
 		};
 
 		gclk_audio: gclk-audio {

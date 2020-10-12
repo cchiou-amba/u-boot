@@ -11,7 +11,7 @@ CONFIG_ARCH_AMBARELLA=y
 #
 # dts for EVK
 #
-CONFIG_DEFAULT_DEVICE_TREE="ambarella_s6lm_pineapple"
+CONFIG_DEFAULT_DEVICE_TREE="ambarella_s6lm"
 
 #
 # Compatiable with AMBOOT

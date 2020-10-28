@@ -12,6 +12,8 @@
 #include <fdt.h>
 #include <linux/libfdt.h>
 
+static const char *u_boot_cfg = "/u-boot_cfg";
+
 static struct mm_region mach_mem_map[] = {
 	{
 		.virt = 0x0UL,
@@ -72,12 +74,12 @@ static void env_set_cfg_info(void)
 	const void *prop;
 	int offset;
 
-	offset = fdt_path_offset(fdt, "/uboot_cfg");
+	offset = fdt_path_offset(fdt, u_boot_cfg);
 	if (offset < 0) {
 		return ;
 	}
 
-	prop = fdt_getprop(fdt, offset, "kernel_addr", NULL);
+	prop = fdt_getprop(fdt, offset, "kernel-addr", NULL);
 	if (prop) {
 		char str[11];
 		sprintf(str, "0x%x", fdt32_to_cpu(*(fdt32_t*)prop));
@@ -85,33 +87,37 @@ static void env_set_cfg_info(void)
 	}
 
 	prop = fdt_getprop(fdt, offset, "console", NULL);
-	if (prop) {
+	if (prop)
 		env_set("console", prop);
-	} else {
+	else
 		env_set("console", "ttyS0");
-	}
-
-	prop = fdt_getprop(fdt, offset, "fb_serial", NULL);
-	if (prop) {
-		env_set("serial#", prop);
-	} else {
-		env_set("serial#", "Ambarella Dummy");
-	}
 
 	prop = fdt_getprop(fdt, offset, "mtdids", NULL);
-	if (prop) {
+	if (prop)
 		env_set("mtdids", prop);
-	} else {
-		;
-	}
 
 	prop = fdt_getprop(fdt, offset, "mtdparts", NULL);
-	if (prop) {
+	if (prop)
 		env_set("mtdparts", prop);
-	} else {
-		;
-	}
 }
+
+ulong board_get_usable_ram_top(ulong total_size)
+{
+	const void *fdt = gd->fdt_blob;
+	const void *prop;
+	int offset;
+
+	offset = fdt_path_offset(fdt, u_boot_cfg);
+	if (offset < 0)
+		return gd->ram_top;
+
+	prop = fdt_getprop(fdt, offset, "reloc-top", NULL);
+	if (prop)
+		return fdt32_to_cpu(*(fdt32_t*)prop);
+
+	return gd->ram_top;
+}
+
 
 int plat_f_dram_init(void)
 {
@@ -119,11 +125,11 @@ int plat_f_dram_init(void)
 	const void *prop;
 	int offset;
 
-	offset = fdt_path_offset(fdt, "/uboot_cfg");
+	offset = fdt_path_offset(fdt, u_boot_cfg);
 	if (offset < 0)
 		return -1;
 
-	prop = fdt_getprop(fdt, offset, "ram_size", NULL);
+	prop = fdt_getprop(fdt, offset, "ram-size", NULL);
 	if (prop) {
 		gd->ram_size = fdt32_to_cpu(*(fdt32_t*)prop);
 

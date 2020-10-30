@@ -2,7 +2,7 @@
 /*
  * Copyright (C) 2020 Ambarella International LP
  */
-#define DEBUG
+//#define DEBUG
 
 #include <common.h>
 #include <cpu_func.h>

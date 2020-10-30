@@ -8,7 +8,7 @@
  *	Kernel image
  *	Firmware
  */
-#define CONFIG_SYS_LOAD_ADDR		0x18000000
+#define CONFIG_SYS_LOAD_ADDR		0x10000000
 
 /*
  * Memory allocator in board_r
@@ -18,7 +18,7 @@
 /*
  * Stack top pointer.
  */
-#define CONFIG_SYS_INIT_SP_ADDR		0x10000000
+#define CONFIG_SYS_INIT_SP_ADDR		0x08000000
 
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define MTDIDS_DEFAULT			"nand0=amba_nand"

@@ -5,3 +5,4 @@
 obj-y	+= pinmux.o rct.o common.o early_print.o
 obj-$(CONFIG_ARCH_AMBARELLA_S6LM)	+= s6lm/
 obj-$(CONFIG_ARCH_AMBARELLA_CV25)	+= cv25/
+obj-$(CONFIG_ARCH_AMBARELLA_CV28)	+= cv28/

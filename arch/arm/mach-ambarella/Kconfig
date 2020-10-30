@@ -8,7 +8,7 @@ config SYS_VENDOR
 config SYS_SOC
 	default "ambarella"
 
-config ARCH_AMBARELLA_CV22
+config ARCH_AMBARELLA_CV28
 	def_bool n
 
 config ARCH_AMBARELLA_CV25
@@ -32,9 +32,16 @@ config TARGET_CV25_DEVKIT
 	help
 	Ambarella International LP
 
+config TARGET_CV28_DEVKIT
+	bool "Ambarella CV28 devkit"
+	select ARCH_AMBARELLA_CV28
+	help
+	Ambarella International LP
+
 endchoice
 
 source "board/ambarella/s6lm_devkit/Kconfig"
 source "board/ambarella/cv25_devkit/Kconfig"
+source "board/ambarella/cv28_devkit/Kconfig"
 
 endif

@@ -981,6 +981,9 @@ dtb-$(CONFIG_ARCH_AMBARELLA_S6LM) +=	\
 dtb-$(CONFIG_ARCH_AMBARELLA_CV25) +=	\
 	ambarella_cv25.dtb \
 
+dtb-$(CONFIG_ARCH_AMBARELLA_CV28) +=	\
+	ambarella_cv28.dtb \
+
 dtb-$(CONFIG_TARGET_MX53PPD) += imx53-ppd.dtb
 
 dtb-$(CONFIG_TARGET_VEXPRESS_CA5X2) += vexpress-v2p-ca5s.dtb

@@ -2,7 +2,7 @@
 /*
  * Copyright (C) 2020 Ambarella International LP
  */
-//#define DEBUG
+#define DEBUG
 
 #include <common.h>
 #include <cpu_func.h>
@@ -1247,6 +1247,7 @@ static int ambarella_nand_probe(struct udevice *dev)
 	struct ambarella_nand_host *host = dev_get_priv(dev);
 	struct nand_chip *chip = &host->chip;
 	struct mtd_info *mtd = &chip->mtd;
+	char *pinctrl;
 	int ret;
 
 	/* Get resources */
@@ -1269,6 +1270,15 @@ static int ambarella_nand_probe(struct udevice *dev)
 
 	/* Reset */
 	ambarella_nand_init_chip(host, dev);
+
+	if (host->is_spinand)
+		pinctrl = "spinand";
+	else
+		pinctrl = "default";
+
+	ret = pinctrl_select_state(dev, pinctrl);
+	if (ret)
+		pr_err("%s: select pinctrl error.\n", dev->name);
 
 	nand_set_controller_data(chip, host);
 
@@ -1314,6 +1324,10 @@ static int ambarella_nand_probe(struct udevice *dev)
 		goto exit1;
 	}
 	debug("%s: Probe done.\n", dev->name);
+
+	writel(0x02021107, host->regbase + SPINAND_TIMING0_OFFSET);
+	writel(0x02020202, host->regbase + SPINAND_TIMING1_OFFSET);
+	writel(0x00080b3b, host->regbase + SPINAND_TIMING2_OFFSET);
 
 	return 0;
 

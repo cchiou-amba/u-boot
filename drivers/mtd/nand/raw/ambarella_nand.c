@@ -1323,11 +1323,8 @@ static int ambarella_nand_probe(struct udevice *dev)
 		dev_err(dev, "Failed to register MTD: %d\n", ret);
 		goto exit1;
 	}
-	debug("%s: Probe done.\n", dev->name);
 
-	writel(0x02021107, host->regbase + SPINAND_TIMING0_OFFSET);
-	writel(0x02020202, host->regbase + SPINAND_TIMING1_OFFSET);
-	writel(0x00080b3b, host->regbase + SPINAND_TIMING2_OFFSET);
+	debug("%s: Probe done.\n", dev->name);
 
 	return 0;
 

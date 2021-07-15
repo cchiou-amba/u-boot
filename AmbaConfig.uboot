@@ -1,0 +1,7 @@
+menu "U-Boot Configuration"
+
+config CONFIG_UBOOT_DEFCONFIG_STRING
+	string "U-Boot Default Configuration"
+	default ""
+
+endmenu

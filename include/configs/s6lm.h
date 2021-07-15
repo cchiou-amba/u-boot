@@ -21,8 +21,6 @@
 #define CONFIG_SYS_INIT_SP_ADDR		0x08000000
 
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define MTDIDS_DEFAULT			"nand0=amba_nand"
-#define MTDPARTS_DEFAULT		"mtdparts=amba_nand:128K(bootstrap),1M(bootloader),8M(kernel),128M(rootfs)"
 #define COUNTER_FREQUENCY		0x2faf080
 
 /*
@@ -37,9 +35,6 @@
  */
 
 #define CONFIG_EXTRA_ENV_SETTINGS						\
-	"console=ttyS0 \0"							\
-	"kernel_addr=0x280000 \0"						\
-	"mtdparts=" MTDPARTS_DEFAULT "\0"					\
 	"serial#=Ambarella S6LM\0"						\
 	"bootargs_nand= ubi.mtd=rootfs rootfstype=ubifs rw root=ubi0:rootfs \0"	\
 	"boot_nand=setenv bootargs "						\
@@ -50,12 +45,16 @@
 
 #define CONFIG_BOOTCOMMAND							\
 	"if test ${Ambarella@BOOT} = nand;"					\
-		"then run boot_nand;"						\
+		"then "								\
+			"run boot_nand;"					\
 		"elif test ${Ambarella@BOOT} = mmc;"				\
-		"then echo TODO mmc boot;"					\
+		"then "								\
+			"echo TODO mmc boot;"					\
 		"elif test ${Ambarella@BOOT} = spinor;"				\
-		"then echo TODO spinor boot;"					\
-		"else echo Unsupport ...;"					\
+		"then "								\
+			"echo TODO spinor boot;"				\
+		"else "								\
+			"echo Unsupport ...;"					\
 	"fi"									\
 
 #endif

@@ -55,5 +55,5 @@ u-boot: $(DOT_CONFIG) u-boot-defconfig ambst u-boot-ext.dtb
 	O=$(AMB_BOARD_OUT)/u-boot EXT_DTB=$(AMB_BOARD_OUT)/u-boot/u-boot-ext.dtb
 	@echo "Build $@ Done ..."
 
-bootloader: u-boot
+boot: u-boot
 endif

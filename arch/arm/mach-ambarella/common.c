@@ -16,19 +16,21 @@ static const char *u_boot_cfg = "/u-boot_cfg";
 
 static struct mm_region mach_mem_map[] = {
 	{
-		.virt = 0x0UL,
-		.phys = 0x0UL,
-		.size = 0x80000000UL,
+		.virt = DRAM_SPACE_START,
+		.phys = DRAM_SPACE_START,
+		.size = DRAM_SPACE_SIZE,
 		.attrs = PTE_BLOCK_MEMTYPE(MT_NORMAL) |
 			PTE_BLOCK_INNER_SHARE
-	}, {
-		.virt = 0xE0000000UL,
-		.phys = 0xE0000000UL,
-		.size = 0x20000000UL,
+	},
+	{
+		.virt = DEVICE_SPACE_START,
+		.phys = DEVICE_SPACE_START,
+		.size = DEVICE_SPACE_SIZE,
 		.attrs = PTE_BLOCK_MEMTYPE(MT_DEVICE_NGNRNE) |
 			PTE_BLOCK_NON_SHARE |
 			PTE_BLOCK_PXN | PTE_BLOCK_UXN
-	}, {
+	},
+	{
 		/* List terminator */
 		0,
 	}
@@ -39,9 +41,9 @@ struct mm_region *mem_map = mach_mem_map;
 static void env_set_poc_info(void)
 {
 	int rval = 0, boot;
-	const char *env = "Ambarella@BOOT";
+	const char *env = "AmbaEnv:boot_mode";
 
-	env_set_hex("Ambarella@POC", rct_system_config());
+	env_set_hex("AmbaEnv:poc", rct_system_config());
 
 	boot = rct_system_boot_from();
 
@@ -150,6 +152,7 @@ __weak void plat_f_debug_init(void) { }
 __weak void plat_f_soc_init(void){ }
 __weak void plat_r_reset_cpu(void) { }
 __weak void plat_f_early_print_init(void) { }
+__weak void plat_device_init(void) { }
 
 void plat_r_board_late_init(void)
 {
@@ -181,6 +184,8 @@ int board_early_init_f(void)
 	plat_f_pinmux_config();
 	plat_f_soc_init();
 	plat_f_early_print_init();
+
+	plat_device_init();
 
 	return 0;
 }

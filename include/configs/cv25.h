@@ -44,15 +44,15 @@
 
 
 #define CONFIG_BOOTCOMMAND							\
-	"if test ${Ambarella@BOOT} = nand;"					\
+	"if test ${AmbaEnv:boot_mode} = nand;"					\
 		"then "								\
 			"run boot_nand;"					\
-		"elif test ${Ambarella@BOOT} = mmc;"				\
+		"elif test ${AmbaEnv:boot_mode} = mmc;"				\
 		"then "								\
-			"echo TODO mmc boot;"					\
-		"elif test ${Ambarella@BOOT} = spinor;"				\
+			"echo eMMC boot;"					\
+		"elif test ${AmbaEnv:boot_mode} = spinor;"			\
 		"then "								\
-			"echo TODO spinor boot;"				\
+			"echo spinor boot;"					\
 		"else "								\
 			"echo Unsupport ...;"					\
 	"fi"									\

@@ -29,4 +29,9 @@ config CONFIG_UBOOT_DEFCONFIG_STRING
 	string "U-Boot Default Configuration"
 	default ""
 
+config CONFIG_UBOOT_DTB_SIZE
+	hex "Device Tree Size appended to U-Boot"
+	default 0x20000
+	help
+
 endmenu

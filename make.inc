@@ -27,11 +27,15 @@ LOCAL_PATH:=$(call my-dir)
 
 ifeq ($(CONFIG_U_BOOT), y)
 
-DTC_OPTIONS	:= -I dts -H epapr -p 0x1000
-DTC_OPTIONS	+= -i $(LINUX_SRC_DIR)/arch/arm64/boot/dts/ambarella
+DT_OPTIONS	:= -I dts -H epapr -p 0x1000 \
+			-Wno-unit_address_vs_reg \
+			-Wno-simple_bus_reg \
+			-Wno-gpios_property \
+			-Wno-unit_address_format
+DT_OPTIONS	+= -i $(LINUX_SRC_DIR)/arch/arm64/boot/dts/ambarella
 
-DTC_CFLAGS	:= -E -nostdinc -D__DTS__ -U linux -x assembler-with-cpp
-DTC_CFLAGS	+= -I $(LINUX_SRC_DIR)/include -I $(AMB_BOARD_DIR) -I$(AMB_BOARD_DIR)/bsp
+DT_CFLAGS	:= -E -nostdinc -D__DTS__ -U linux -x assembler-with-cpp
+DT_CFLAGS	+= -I $(LINUX_SRC_DIR)/include -I$(AMB_BOARD_DIR) -I$(AMB_BOARD_DIR)/bsp
 
 ifeq ($(wildcard $(CONFIG_UBOOT_DEFCONFIG_STRING)),)
 CONFIG_UBOOT_DEFCONFIG_STRING :=$(CONFIG_KERNEL_DEFCONFIG_STRING)
@@ -39,21 +43,24 @@ endif
 
 u-boot-defconfig: PRIVATE_PATH:=$(LOCAL_PATH)
 u-boot-defconfig:
+	@echo $(CONFIG_UBOOT_DEFCONFIG_STRING)
 	@$(MAKE) $(CONFIG_UBOOT_DEFCONFIG_STRING)	\
 	-C $(PRIVATE_PATH)				\
 	O=$(AMB_BOARD_OUT)/u-boot
 
 u-boot-ext.dtb: $(AMB_BOARD_DIR)/bsp/$(AMB_BOARD).dts
 	@mkdir -p $(AMB_BOARD_OUT)/u-boot
-	@$(CC) $(DTC_CFLAGS) $< |dtc $(DTC_OPTIONS) -O dtb -o $(AMB_BOARD_OUT)/u-boot/$@
+	@$(CC) $(DT_CFLAGS) $< |dtc $(DT_OPTIONS) -O dtb -o $(AMB_BOARD_OUT)/u-boot/$@
 	@echo "Build $@ Done ..."
 
 .PHONY: u-boot
 u-boot: PRIVATE_PATH:=$(LOCAL_PATH)
-u-boot: $(DOT_CONFIG) u-boot-defconfig ambst u-boot-ext.dtb
-	@$(MAKE) -C $(PRIVATE_PATH)		\
+u-boot: $(DOT_CONFIG) u-boot-defconfig u-boot-ext.dtb
+	@$(MAKE) -s -C $(PRIVATE_PATH)		\
 	O=$(AMB_BOARD_OUT)/u-boot EXT_DTB=$(AMB_BOARD_OUT)/u-boot/u-boot-ext.dtb
 	@echo "Build $@ Done ..."
+	@mkdir -p $(IMAGES_OUT_DIR)
+	@install -m 755 $(AMB_BOARD_OUT)/u-boot/u-boot.bin $(IMAGES_OUT_DIR)
 
 boot: u-boot
 endif

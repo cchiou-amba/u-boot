@@ -1497,6 +1497,7 @@ static void ambarella_init_usb(struct ambarella_udc *udc)
 static void usb_phy_enable(struct ambarella_udc *udc)
 {
 
+#if 0
 	regmap_update_bits(udc->rct_regmap, ANA_PWR_OFFSET, 0x3 << 1, 0x3);
 	regmap_update_bits(udc->rct_regmap, ANA_PWR_OFFSET, 0x3 << 12, 0x3);
 	mdelay(1);
@@ -1505,6 +1506,7 @@ static void usb_phy_enable(struct ambarella_udc *udc)
 	mdelay(1);
 	regmap_update_bits(udc->rct_regmap, USBC_CTRL_OFFSET, 0x1 << 1, 0x0);
 	mdelay(1);
+#endif
 }
 
 static int ambarella_udc_probe(struct udevice *dev)

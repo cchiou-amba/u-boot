@@ -11,7 +11,7 @@
 #include <asm/arch/misc.h>
 #include <linux/delay.h>
 
-const struct pinmux_config s6lm_init_pinmux[] = {
+const struct pinmux_config cv5_init_pinmux[] = {
 	/* UART APB */
 #ifdef CONFIG_DEBUG_UART
 	{10, 1}, {11, 1},
@@ -26,19 +26,22 @@ void plat_f_clk_config(void)
 
 void plat_f_pinmux_config(void)
 {
-	pinmux_config_set_item(s6lm_init_pinmux, sizeof(s6lm_init_pinmux));
+	pinmux_config_set_item(cv5_init_pinmux, sizeof(cv5_init_pinmux));
 }
 
 void plat_f_soc_init(void)
 {
-	writel(1, 0xf1000008); /* Non-Secure AHB */
-	writel(1, 0xf100000c); /* Secure AHB */
-	writel(1, 0xf1000010); /* AXI Config */
-	writel(1, 0xf1000014); /* GIC */
+	/* NIC400 */
+	writel(1, 0x20f1000008);
+	writel(1, 0x20f100000c);
+	writel(1, 0x20f1000010);
+	writel(1, 0x20f1000014);
 
-	writel(0, 0xf2000090);
-	writel(0, 0xf2000094);
-	writel(0, 0xf2000098);
+	writel(1, 0x20f1000018);
+	writel(1, 0x20f100001c);
+	writel(1, 0x20f1000020);
+	writel(1, 0x20f1000024);
+	writel(1, 0x20f1000028);
 }
 
 void plat_r_reset_cpu(void)
@@ -50,11 +53,9 @@ void plat_r_reset_cpu(void)
 
 void cpu_secondary_init_r(void)
 {
-	writel(gd->relocaddr, 0xf2000068);
-	writel(gd->relocaddr, 0xf200006C);
-	writel(gd->relocaddr, 0xf2000070);
+	writel(gd->relocaddr, 0x20f2000068);
 
-	writel(0, 0xf2000028);
+	writel(0, 0x20f2000028);
 }
 
 void plat_device_init(void)

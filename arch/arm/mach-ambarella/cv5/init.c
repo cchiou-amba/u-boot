@@ -59,11 +59,12 @@ void cpu_secondary_init_r(void)
 }
 
 void plat_device_init(void)
-{ 
+{
 	/* USB device */
 	rct_writel(0x50, 0x3006);
-	rct_writel(0x2cc, 0x2);
+
+	setbits_32(AHBSP_NS_BASE + 0x12c, 0x1);
 	mdelay(1);
-	rct_writel(0x2cc, 0x0);
+	clrbits_32(AHBSP_NS_BASE + 0x12c, 0x1);
 	mdelay(1);
 }

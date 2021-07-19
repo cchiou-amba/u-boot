@@ -27,11 +27,13 @@ LOCAL_PATH:=$(call my-dir)
 
 ifeq ($(CONFIG_U_BOOT), y)
 
-DT_OPTIONS	:= -I dts -H epapr -p 0x1000 \
-			-Wno-unit_address_vs_reg \
-			-Wno-simple_bus_reg \
-			-Wno-gpios_property \
-			-Wno-unit_address_format
+DT_OPTIONS	:= -I dts -H epapr -p 0x1000
+
+#			-Wno-unit_address_vs_reg \
+#			-Wno-simple_bus_reg \
+#			-Wno-gpios_property \
+#			-Wno-unit_address_format
+
 DT_OPTIONS	+= -i $(LINUX_SRC_DIR)/arch/arm64/boot/dts/ambarella
 
 DT_CFLAGS	:= -E -nostdinc -D__DTS__ -U linux -x assembler-with-cpp

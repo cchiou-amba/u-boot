@@ -472,6 +472,14 @@ static void ambarella_handle_request_packet(struct ambarella_udc *udc)
 		crq->bRequestType, crq->bRequest, crq->wValue, crq->wIndex,
 		crq->wLength);
 
+	if (crq->bRequestType == 0 || crq->bRequestType == 0xff)
+	{
+		setbits_32(udc->base + udc->ep[CTRL_IN].ep_reg.ctrl_reg, USB_EP_STALL | USB_EP_FLUSH);
+		ambarella_enable_rx_dma(&udc->ep[CTRL_OUT]);
+		ambarella_clr_ep_nak(&udc->ep[CTRL_OUT]);
+		return ;
+	}
+
 	if((crq->bRequestType & USB_TYPE_MASK) == USB_TYPE_STANDARD){
 		switch(crq->bRequest)
 		{

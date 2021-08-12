@@ -23,7 +23,15 @@
 ## ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ## POSSIBILITY OF SUCH DAMAGE.
 ##
+
+if CONFIG_UBOOT
+
 menu "U-Boot Configuration"
+
+config U_BOOT_RAM_START
+	hex "U-boot starting address"
+	default 0x00000000
+	help
 
 config CONFIG_UBOOT_DEFCONFIG_STRING
 	string "U-Boot Default Configuration"
@@ -35,3 +43,5 @@ config CONFIG_UBOOT_DTB_SIZE
 	help
 
 endmenu
+
+endif

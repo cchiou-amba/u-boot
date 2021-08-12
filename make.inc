@@ -25,7 +25,7 @@
 ##
 LOCAL_PATH:=$(call my-dir)
 
-ifeq ($(CONFIG_U_BOOT), y)
+ifeq ($(CONFIG_UBOOT), y)
 
 DT_OPTIONS	:= -I dts -H epapr -p 0x1000
 

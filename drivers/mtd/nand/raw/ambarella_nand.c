@@ -1233,7 +1233,6 @@ static int ambarella_nand_probe(struct udevice *dev)
 	struct ambarella_nand_host *host = dev_get_priv(dev);
 	struct nand_chip *chip = &host->chip;
 	struct mtd_info *mtd = &chip->mtd;
-	char *pinctrl;
 	int ret;
 
 	/* Get resources */
@@ -1254,12 +1253,8 @@ static int ambarella_nand_probe(struct udevice *dev)
 	/* Reset */
 	ambarella_nand_init_chip(host, dev);
 
-	if (host->is_spinand)
-		pinctrl = "spinand";
-	else
-		pinctrl = "default";
-
-	ret = pinctrl_select_state(dev, pinctrl);
+	/* defualt is spinand */
+	ret = pinctrl_select_state(dev, "default");
 	if (ret)
 		pr_err("%s: select pinctrl error.\n", dev->name);
 

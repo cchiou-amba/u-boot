@@ -208,14 +208,6 @@ static u32 to_native_cmd(struct ambarella_nand_host *host, u32 cmd)
 	return native_cmd;
 }
 
-static inline void ambarella_fio_rct_reset(struct ambarella_nand_host *host)
-{
-	regmap_write(host->reg_rct, FIO_RESET_OFFSET, FIO_RESET_FIO_RST);
-	mdelay(1);
-	regmap_write(host->reg_rct, FIO_RESET_OFFSET, 0);
-	mdelay(1);
-}
-
 static int count_zero_bits(u8 *buf, int size, int max_bits)
 {
 	int i, zero_bits = 0;
@@ -869,10 +861,6 @@ static void ambarella_nand_init_hw(struct ambarella_nand_host *host)
 {
 	u32 val;
 
-	/* reset FIO by RCT */
-	if (!host->is_spinand)
-		ambarella_fio_rct_reset(host);
-
 	/* Reset FIO FIFO and then exit random read mode */
 	val = readl(host->regbase + FIO_CTRL_OFFSET);
 	val |= FIO_CTRL_RANDOM_READ;
@@ -1001,9 +989,7 @@ static void ambarella_nand_init_chip(struct ambarella_nand_host *host,
 		struct udevice *dev)
 {
 	struct nand_chip *chip = &host->chip;
-	u32 poc;
-
-	regmap_read(host->reg_rct, SYS_CONFIG_OFFSET, &poc);
+	u32 poc = rct_system_config();
 
 #if 1
 	host->page_4k = (poc & SYS_CONFIG_NAND_PAGE_SIZE) ? false : true;
@@ -1252,9 +1238,6 @@ static int ambarella_nand_probe(struct udevice *dev)
 
 	/* Get resources */
 	host->regbase = (void *)dev_read_addr(dev);
-
-	host->reg_rct = syscon_regmap_lookup_by_phandle(dev, "amb,rct-regmap");
-
 	host->dev = dev;
 
 	/* Enable the clock */

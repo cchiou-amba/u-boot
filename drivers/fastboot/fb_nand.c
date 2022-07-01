@@ -51,7 +51,9 @@ static int fb_nand_lookup(const char *partname,
 	if (ret) {
 		pr_err("cannot find partition: '%s'", partname);
 		fastboot_fail("cannot find partition", response);
-		return ret;
+		/* FIXME: if not return -1, otherwise fastboot can't flash image */
+		//return ret;
+		return -1;
 	}
 
 	if (dev->id->type != MTD_DEV_TYPE_NAND) {

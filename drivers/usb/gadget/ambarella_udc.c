@@ -449,6 +449,7 @@ static int ambarella_handle_ep_stall(struct ambarella_ep *ep, u32 ep_status)
 		ret = 1;
 	}
 
+	mdelay(1);
 	return ret;
 }
 
@@ -1517,14 +1518,25 @@ static void usb_phy_enable(struct ambarella_udc *udc)
 #endif
 }
 
+static void ambarella_udc_reset(struct ambarella_udc *udc)
+{
+	if (udc->scr_reg) {
+		regmap_update_bits(udc->scr_reg, UDC_SOFT_RESET_OFFSET, UDC_SOFT_RESET_MASK, UDC_SOFT_RESET_MASK);
+		mdelay(1);
+		regmap_update_bits(udc->scr_reg, UDC_SOFT_RESET_OFFSET, UDC_SOFT_RESET_MASK, 0x0);
+		mdelay(1);
+	}
+};
 static int ambarella_udc_probe(struct udevice *dev)
 {
 	struct ambarella_udc *udc = dev_get_priv(dev);
 	int retval;
 
 	usb_phy_enable(udc);
+	mdelay(1);			/* 'delay' is more stable ? */
 	setbits_32(udc->base + USB_DEV_CTRL_REG, 1 << 10);
-	setbits_32(udc->base + USB_DEV_CTRL_REG, 1 << 2);
+	setbits_32(udc->base + USB_DEV_CFG_REG, 1 << 2);
+	ambarella_udc_reset(udc);
 
 	ambarella_init_gadget(udc);
 	ambarella_udc_reinit(udc);
@@ -1973,8 +1985,8 @@ static int __ofdata_to_platdata(struct udevice *dev)
 	struct ambarella_udc *platdata = dev_get_priv(dev);
 
 	platdata->base = (void *)dev_read_addr(dev);
-	platdata->rct_regmap = syscon_regmap_lookup_by_phandle(dev,
-			"amb,rct-regmap");
+	platdata->scr_reg = syscon_regmap_lookup_by_phandle(dev,
+			"amb,scr-regmap");
 	return 0;
 }
 

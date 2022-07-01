@@ -383,6 +383,8 @@
 #define USB_DMA_BUF_DMA_DONE		0x80000000		// 10
 #define	USB_DMA_BUF_HOST_BUSY		0xc0000000		// 11
 
+#define UDC_SOFT_RESET_OFFSET              0x12c
+#define UDC_SOFT_RESET_MASK             	0x1
 //-------------------------------------
 // Structure definition
 //-------------------------------------

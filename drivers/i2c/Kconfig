@@ -125,6 +125,12 @@ config SYS_I2C_DW_ENABLE_STATUS_UNSUPPORTED
 	  enable status register. This config option can be enabled in such
 	  cases.
 
+config SYS_I2C_AMBARELLA
+       bool "Ambarella I2C bus driver"
+       depends on DM_I2C
+       help
+	  Add support for Ambarella I2C busses as used on CVx processors.
+
 config SYS_I2C_ASPEED
 	bool "Aspeed I2C Controller"
 	depends on DM_I2C && ARCH_ASPEED

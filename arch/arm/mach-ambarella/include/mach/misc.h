@@ -20,5 +20,8 @@ void plat_r_board_late_init(void);
 void plat_r_reset_cpu(void);
 int plat_f_dram_init(void);
 
+u32 get_core_bus_freq_hz(void);
+u32 get_ahb_bus_freq_hz(void);
+u32 get_apb_bus_freq_hz(void);
 
 #endif

@@ -42,6 +42,13 @@ CONFIG_PINCTRL_FULL=y
 CONFIG_PINCTRL_AMBARELLA=y
 
 #
+# I2C
+#
+CONFIG_SYS_I2C_AMBARELLA=y
+CONFIG_DM_I2C=y
+CONFIG_CMD_I2C=y
+
+#
 # Watchdog
 #
 CONFIG_WATCHDOG=y
@@ -102,3 +109,8 @@ CONFIG_ARMV8_SPIN_TABLE=y
 # support if, while, for ... in bootcmd
 #
 CONFIG_HUSH_PARSER=y
+
+#
+# cmd
+#
+CONFIG_CMD_DM=y

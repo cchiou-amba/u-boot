@@ -249,6 +249,13 @@ config ETH_DESIGNWARE
 	  100Mbit and 1 Gbit operation. You must enable CONFIG_PHYLIB to
 	  provide the PHY (physical media interface).
 
+config ETH_AMBARELLA
+	bool "Ambarella Ethernet GMAC"
+	select PHYLIB
+	help
+	  This MAC is in SoCs. You must enable CONFIG_PHYLIB to provide
+	  the PHY (physical media interface);
+
 config ETH_DESIGNWARE_SOCFPGA
 	select REGMAP
 	select SYSCON

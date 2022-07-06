@@ -26,6 +26,12 @@
 
 
 /*
+ * GMAC
+ */
+#define CONFIG_DW_GMAC_DEFAULT_DMA_PBL  (8)
+#define CONFIG_DW_ALTDESCRIPTOR
+
+/*
  *
  */
 

@@ -305,7 +305,7 @@ static void ambarella_eth_phy_clock_init(void)
 	setbits_32((void *)0x20ED0806B8, 0x1);
 	/* rct AHB_MISC_REG bit5 Controls direction of xx_enet_clk_rx*/
 	setbits_32((void *)0x20ED08021C, 0x20);
-	printf("%s 0x%x\n", __func__, *(unsigned int *)0x20E0024060);
+	//printf("%s 0x%x\n", __func__, *(unsigned int *)0x20E0024060);
 }
 
 int ambarella_eth_init(struct amb_eth_dev *priv, u8 *enetaddr)

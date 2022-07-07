@@ -33,7 +33,7 @@ static void ambarella_set_clock(struct sdhci_host *host, u32 div)
 
 	clock = host->mmc->clock;
 	/* ToDo : Use the dts node Index, use 0 firstly */
-	rct_set_sd_pll(0, clock);
+	rct_set_sd_pll(host->index, clock);
 }
 
 static int ambarella_sdhci_execute_tuning(struct mmc *mmc, u8 opcode)
@@ -131,6 +131,13 @@ static int ambarella_sdhci_probe(struct udevice *dev)
 	int ret, max_frequency;
 
 	max_frequency = dev_read_u32_default(dev, "max-frequency", 0);
+	host->bus_width = dev_read_u32_default(dev, "bus-width", 4);
+	ret = dev_read_s32(dev, "index", &host->index);
+	if (ret < 0) {
+		debug("Missing index!\n");
+		host->index = 0;
+	}
+	debug("mmc%d bus width %d-bit \n", host->index, host->bus_width);
 
 	host->name = dev->name;
 	host->ioaddr = dev_read_addr_ptr(dev);

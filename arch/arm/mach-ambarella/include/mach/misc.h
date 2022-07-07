@@ -24,4 +24,7 @@ u32 get_core_bus_freq_hz(void);
 u32 get_ahb_bus_freq_hz(void);
 u32 get_apb_bus_freq_hz(void);
 
+void rct_set_sd_pll(int slot, u32 freq_hz);
+u32 get_sd_freq_hz(int slot);
+
 #endif

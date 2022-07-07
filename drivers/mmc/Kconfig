@@ -677,6 +677,15 @@ config ZYNQ_HISPD_BROKEN
 	help
 	  Set if high speed mode is broken.
 
+config MMC_SDHCI_AMBARELLA
+	bool "SDHCI support for the Ambarella SDHCI controller"
+	depends on MMC_SDHCI && DM_MMC && OF_CONTROL
+	help
+	  Support for Ambarella SDHCI host controller on Ambarella SoCs platforms
+
+	  If you have a controller with this interface, say Y here.
+	  If unsure, say N.
+
 config MMC_SUNXI
 	bool "Allwinner sunxi SD/MMC Host Controller support"
 	depends on ARCH_SUNXI && !UART0_PORT_F

@@ -34,15 +34,30 @@
 /*
  *
  */
+#ifndef PARTS_DEFAULT
+/* Define the default GPT table for eMMC */
+#define PARTS_DEFAULT \
+        /* Linux partitions */ \
+        "uuid_disk=${uuid_gpt_disk};" \
+        "name=uboot,start=1M,size=1M,uuid=${uuid_gpt_uboot};" \
+        "name=kernel,size=20M,uuid=${uuid_gpt_kernel};" \
+        "name=rootfs,size=512M,uuid=${uuid_gpt_rootfs}\0"
+#endif /* PARTS_DEFAULT */
 
+
+#ifndef CONFIG_FASTBOOT_FLASH_NAND
+#define CONFIG_EXTRA_ENV_SETTINGS               \
+        "partitions=" PARTS_DEFAULT "\0"
+
+#else
 #define CONFIG_EXTRA_ENV_SETTINGS						\
-	"serial#=Ambarella S6LM\0"						\
+	"serial#=Ambarella CV5\0"						\
 	"bootargs_nand= ubi.mtd=rootfs rootfstype=ubifs rw root=ubi0:rootfs \0"	\
 	"boot_nand=setenv bootargs "						\
 		"console=${console} ${bootargs_nand} ${mtdparts}; "		\
 		"nand read ${kernel_addr} kernel; "				\
 		"booti ${kernel_addr} - ${fdtaddr} \0"
-
+#endif
 
 #define CONFIG_BOOTCOMMAND							\
 	"if test ${AmbaEnv:boot_mode} = nand;"					\

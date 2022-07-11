@@ -11,8 +11,6 @@
 #include <linux/bitops.h>
 #include <linux/delay.h>
 
-#define RCT_REG(x)			(RCT_BASE + (x))
-
 #define PLL_SCALER_JDIV(x)			(((x >> 4) & 0xF) + 1)
 #define REF_CLK_FREQ			24000000UL
 

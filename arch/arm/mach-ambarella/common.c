@@ -133,8 +133,8 @@ int plat_f_dram_init(void)
 
 	prop = fdt_getprop(fdt, offset, "ram-size", NULL);
 	if (prop) {
-		gd->ram_size = fdt32_to_cpu(*(fdt32_t*)prop);
-
+		//gd->ram_size = fdt64_to_cpu(*(fdt64_t*)prop);
+		gd->ram_size = DRAM_SIZE;
 		mach_mem_map[0].size = gd->ram_size;
 		return 0;
 	}

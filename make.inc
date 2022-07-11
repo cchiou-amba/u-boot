@@ -37,11 +37,11 @@ DT_OPTIONS	:= -I dts -H epapr -p 0x1000
 DT_OPTIONS	+= -i $(LINUX_SRC_DIR)/arch/arm64/boot/dts/ambarella
 
 DT_CFLAGS	:= -E -nostdinc -D__DTS__ -U linux -x assembler-with-cpp
-DT_CFLAGS	+= -I $(LINUX_SRC_DIR)/include -I$(AMB_BOARD_DIR) -I$(AMB_BOARD_DIR)/bsp
+DT_CFLAGS	+= -I $(AMB_TOPDIR)/include -I $(LINUX_SRC_DIR)/include -I$(AMB_BOARD_DIR) -I$(AMB_BOARD_DIR)/bsp
 
-ifeq ($(wildcard $(CONFIG_UBOOT_DEFCONFIG_STRING)),)
-CONFIG_UBOOT_DEFCONFIG_STRING :=$(CONFIG_KERNEL_DEFCONFIG_STRING)
-endif
+#ifeq ($(wildcard $(CONFIG_UBOOT_DEFCONFIG_STRING)),)
+#CONFIG_UBOOT_DEFCONFIG_STRING :=$(CONFIG_KERNEL_DEFCONFIG_STRING)
+#endif
 
 u-boot-defconfig: PRIVATE_PATH:=$(LOCAL_PATH)
 u-boot-defconfig:

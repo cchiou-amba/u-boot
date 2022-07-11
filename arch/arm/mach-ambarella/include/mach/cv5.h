@@ -50,4 +50,19 @@
 #define SYS_CONFIG_BOOT_RSVD		(0b11 << 4)
 #define SYS_CONFIG_BOOT_MASK		(0b11 << 4)
 
+#define RCT_REG(x)			(RCT_BASE + (x))
+#define SYS_CONFIG_REG                  RCT_REG(SYS_CONFIG_OFFSET)
+
+#define CLK_SI_INPUT_MODE_OFFSET      0xBC
+#define CLK_SI_INPUT_MODE_REG         RCT_REG(CLK_SI_INPUT_MODE_OFFSET)
+
+#define POC_PERIPHERAL_CLK_MODE         0x04000000
+#define POC_ORC_CLK_MODE                0x00000000
+
+/* DRAM ctrl register */
+#define DRAMC_PHYS_BASE                         0x1000000000
+#define DRAM_DRAM_OFFSET                        0x00000
+#define DRAMC_DRAM_BASE                         (DRAMC_PHYS_BASE + DRAM_DRAM_OFFSET)
+#define DRAMC_DDRC_BASE                         (DRAMC_PHYS_BASE + DRAM_DDRC_OFFSET)
+
 #endif

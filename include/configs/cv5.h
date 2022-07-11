@@ -11,6 +11,7 @@
  */
 #define CONFIG_SYS_LOAD_ADDR		0x10000000
 
+#define DRAM_SIZE					(8ULL << 30)
 /*
  * Memory allocator in board_r
  */

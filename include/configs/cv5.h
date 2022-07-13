@@ -3,6 +3,8 @@
 
 #include <linux/sizes.h>
 #include <asm/arch/soc.h>
+
+#define CONFIG_ARMV8_SWITCH_TO_EL1
 /*
  * Default load address:
  *	U-boot command script

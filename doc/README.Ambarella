@@ -94,7 +94,7 @@ II - Build Options
 		0: bootstrap           0x00020000      0x00000000      0
 		1: uboot               0x00100000      0x00020000      0
 		2: kernel              0x01000000      0x00120000      0
-		3: lnx                 0x08000000      0x01120000      0
+		3: rootfs              0x08000000      0x01120000      0
 	The parts names are one to one with the bianries.
 		See items 6) command with 'fastboot.ext flash xxx(parts_name) xxx(binary_name)'
 
@@ -106,7 +106,7 @@ II - Build Options
 		fastboot.exe flash bootstrap uboot_bst_release.bin
 		fastboot.exe flash uboot u-boot.bin
 		fastboot.exe flash kernel Image
-		fastboot.exe flash rootfs lnx
+		fastboot.exe flash rootfs ubifs
 	  7) set board to normal boot from usb boot
 		Power on
 III - Note

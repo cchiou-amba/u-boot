@@ -17,6 +17,16 @@
 #define PLL_CORE_CTRL_OFFSET         0x0
 #define PLL_CORE_CTRL2_OFFSET         0x100
 
+#define PLL_NAND_CTRL_OFFSET            0x6f8
+#define PLL_NAND_FRAC_OFFSET            0x6fc
+#define PLL_NAND_CTRL2_OFFSET           0x700
+#define PLL_NAND_CTRL3_OFFSET           0x704
+
+#define PLL_NAND_CTRL_REG               RCT_REG(PLL_NAND_CTRL_OFFSET)
+#define PLL_NAND_FRAC_REG               RCT_REG(PLL_NAND_FRAC_OFFSET)
+#define PLL_NAND_CTRL2_REG              RCT_REG(PLL_NAND_CTRL2_OFFSET)
+#define PLL_NAND_CTRL3_REG              RCT_REG(PLL_NAND_CTRL3_OFFSET)
+
 #define PLL_SD_CTRL_OFFSET		0x4AC
 #define PLL_SD_FRAC_OFFSET		0x4B0
 #define PLL_SD_CTRL2_OFFSET		0x4B4
@@ -150,4 +160,9 @@ u32 get_sd_freq_hz(int slot)
 {
 	return rct_get_integer_pll_freq(rct_readl(PLL_SD_CTRL_OFFSET),
 							rct_readl(PLL_SD_CTRL2_OFFSET), 1, readl(SCALER_SD_REG(slot)));
+}
+
+u32 get_nand_freq_hz(void)
+{
+	return rct_get_integer_pll_freq(readl(PLL_NAND_CTRL_REG), readl(PLL_NAND_CTRL2_REG), 1, 1);
 }

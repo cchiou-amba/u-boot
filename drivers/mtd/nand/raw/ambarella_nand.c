@@ -70,12 +70,37 @@ struct ambarella_nand_host {
 	u32				timing[6];
 
 };
+/* ==========================================================================*/
+/*  "Micron MT29F2G01ABBGD_256MB_PG2K_1_8V" */
+/**
+ * timing parameter in ns
+ */
+#define NAND_TCLH               4
+#define NAND_TCLL               4
+#define NAND_TCS                30
+#define NAND_TCLQV              14 /* PS: experience value */
 
+#define NAND_TCHSL              4
+#define NAND_TSLCH              4
+#define NAND_TCHSH              4
+#define NAND_TSHCH              4
+
+#define NAND_THHQX              16 /* same as NAND_TCLQV? */
+#define NAND_TWPS               20
+#define NAND_TWPH               100
+
+#define NAND_TCHHL              0
+#define NAND_TCHHH              0
+#define NAND_THLCH              0
+#define NAND_THHCH              0
+
+#define NAND_TIMING0    (NAND_TCLH << 24 | NAND_TCLL << 16 | NAND_TCS << 8 | NAND_TCLQV)
+#define NAND_TIMING1    (NAND_TCHSL << 24 | NAND_TSLCH << 16 | NAND_TCHSH << 8 | NAND_TSHCH)
+#define NAND_TIMING2    (NAND_THHQX << 16 | NAND_TWPS << 8 | NAND_TWPH)
+#define NAND_TIMING3    (NAND_TCHHL << 24 | NAND_TCHHH << 16 | NAND_THLCH << 8 | NAND_THHCH)
 /* ==========================================================================*/
 #define FLASH_TIMING_MIN(x, offs) flash_timing(0, x, offs)
 #define FLASH_TIMING_MAX(x, offs) flash_timing(1, x, offs)
-
-extern u32 get_nand_freq_hz(void);
 
 static inline int flash_timing(int minmax, int val, int offs)
 {
@@ -98,6 +123,37 @@ static inline int flash_timing(int minmax, int val, int offs)
 		n--;
 
 	return (n < 1 ? 0 : (n-1)) << offs;
+}
+
+static int ambarella_nand_init_timings(struct ambarella_nand_host *host)
+{
+	u32 timing0 = NAND_TIMING0;
+	u32 timing1 = NAND_TIMING1;
+	u32 timing2 = NAND_TIMING2;
+
+	u32 clk = get_nand_freq_hz() / 1000000;
+	printf("nand clk is %dMhz \n", clk);
+	/* timing 0 */
+	writel(FLASH_TIMING_MIN(timing0, 24)	|
+				FLASH_TIMING_MIN(timing0, 16)	|
+				FLASH_TIMING_MIN(timing0, 8)	|
+				FLASH_TIMING_MAX(timing0, 0),
+				host->regbase + SPINAND_TIMING0_OFFSET);
+	/* timing 1 */
+	writel(FLASH_TIMING_MIN(timing1, 24)	|
+				FLASH_TIMING_MIN(timing1, 16)	|
+				FLASH_TIMING_MIN(timing1, 8)	|
+				FLASH_TIMING_MIN(timing1, 0),
+				host->regbase + SPINAND_TIMING1_OFFSET);
+
+	/* timing 2 */
+	writel(FLASH_TIMING_MAX(timing2, 16)	|
+			    FLASH_TIMING_MIN(timing2, 8)	|
+			    FLASH_TIMING_MIN(timing2, 0),
+				host->regbase + SPINAND_TIMING2_OFFSET);
+
+
+	return 0;
 }
 
 static int amb_ecc6_ooblayout_ecc_lp(struct mtd_info *mtd, int section,
@@ -1076,37 +1132,7 @@ static int ambarella_nand_init_chipecc(struct ambarella_nand_host *host)
 
 	return 0;
 }
-
-/////TODO
-//mt29f2g01abagd.h
-/**
- * timing parameter in ns
- */
-#define NAND_TCLH               4
-#define NAND_TCLL               4
-#define NAND_TCS                30
-#define NAND_TCLQV              14 /* PS: experience value */
-
-#define NAND_TCHSL              4
-#define NAND_TSLCH              4
-#define NAND_TCHSH              4
-#define NAND_TSHCH              4
-
-#define NAND_THHQX              16 /* same as NAND_TCLQV? */
-#define NAND_TWPS               20
-#define NAND_TWPH               100
-
-#define NAND_TCHHL              0
-#define NAND_TCHHH              0
-#define NAND_THLCH              0
-#define NAND_THHCH              0
-
-#define NAND_TIMING0	(NAND_TCLH << 24 | NAND_TCLL << 16 | NAND_TCS << 8 | NAND_TCLQV)
-#define NAND_TIMING1	(NAND_TCHSL << 24 | NAND_TSLCH << 16 | NAND_TCHSH << 8 | NAND_TSHCH)
-#define NAND_TIMING2	(NAND_THHQX << 16 | NAND_TWPS << 8 | NAND_TWPH)
-#define NAND_TIMING3	(NAND_TCHHL << 24 | NAND_TCHHH << 16 | NAND_THLCH << 8 | NAND_THHCH)
-///////////////////////TODO
-
+#if 0
 static void ambarella_nand_set_sdr_timing(struct ambarella_nand_host *host)
 {
 	if (host->is_spinand) {
@@ -1227,6 +1253,7 @@ static void ambarella_nand_init_timings(struct ambarella_nand_host *host)
 		ambarella_nand_set_sdr_timing(host);
 	}
 }
+#endif
 
 static int ambarella_nand_probe(struct udevice *dev)
 {

@@ -55,7 +55,7 @@
 #else
 #define CONFIG_EXTRA_ENV_SETTINGS						\
 	"serial#=Ambarella CV5\0"						\
-	"bootargs_nand= ubi.mtd=rootfs rootfstype=ubifs rw root=ubi0:rootfs \0"	\
+	"bootargs_nand= ubi.mtd=rootfs rootfstype=ubifs rw root=ubi0:rootfs init=/linuxrc \0"	\
 	"pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi fw_devlink=permissive \0" \
 	"boot_nand=setenv bootargs "						\
 		"console=${console} ${bootargs_nand} ${pcie_arg} ${mtdparts}; "		\

@@ -151,6 +151,114 @@ fdt_update_memory_exit:
 	return rval;
 }
 
+#if !defined(CONFIG_AARCH64_TRUSTZONE) && defined(CONFIG_ARCH_AMBARELLA_CV5)
+void fdt_setup_att_regmap(void *fdt)
+{
+
+#define PAGE_ENTRY_SHIFT		(14)
+#define PAGE_ENTRY_TOTAL		(1 << 14)
+#define PAGE_ENTRY_MASK			(PAGE_ENTRY_TOTAL - 1)
+#define PAGE_ATTR_RO			(1 << 15)
+
+	int i, j, offset, len, count, verbose;
+	const char *compatible = "ambarella,att-regmap";
+	const unsigned int *prop;
+	unsigned int bitmap, page_size, regval;
+	unsigned int entry_start, entry_count, page_start;
+	unsigned long dram_size;
+
+	struct segment_regmap {
+		unsigned long virt_addr;
+		unsigned long phys_addr;
+		unsigned long size;
+	} regmap[8];
+
+	offset = fdt_node_offset_by_compatible(fdt, -1, compatible);
+	if (offset < 0)
+		return ;
+
+	prop = fdt_getprop(fdt, offset, "amb,att-debug", &len);
+	if (!prop)
+		verbose = 0;
+	else
+		verbose = 1;
+
+	prop = fdt_getprop(fdt, offset, "dram-size", &len);
+	if (!prop || len < 0) {
+		printf("%s: get property 'dram-size' error\n", __func__);
+		return ;
+	}
+
+	dram_size = ((unsigned long)fdt32_to_cpu(prop[0]) << 32) | fdt32_to_cpu(prop[1]);
+	page_size = (unsigned int)(dram_size >> PAGE_ENTRY_SHIFT);
+
+	prop = fdt_getprop(fdt, offset, "client-bitmap", &len);
+	if (!prop || len < 0) {
+		printf("%s: get property 'client-bitmap' error\n", __func__);
+		return ;
+	}
+	bitmap = fdt32_to_cpu(prop[0]);
+
+	prop = fdt_getprop(fdt, offset, "segment-regmap", &len);
+	if (!prop || len < 0){
+		printf("%s: get property 'segment-regmap' error\n", __func__);
+		return ;
+	}
+
+	for (i = 0; i < len / 24; i ++) {
+		regmap[i].virt_addr = ((unsigned long)fdt32_to_cpu(prop[i * 6 + 0]) << 32);
+		regmap[i].virt_addr |= fdt32_to_cpu(prop[i * 6 + 1]);
+		regmap[i].phys_addr = ((unsigned long)fdt32_to_cpu(prop[i * 6 + 2]) << 32);
+		regmap[i].phys_addr |= fdt32_to_cpu(prop[i * 6 + 3]);
+		regmap[i].size = ((unsigned long)fdt32_to_cpu(prop[i * 6 + 4]) << 32);
+		regmap[i].size |= fdt32_to_cpu(prop[i * 6 + 5]);
+
+		if (!regmap[i].size || regmap[i].size < page_size){
+			printf("%s: Invalid regmap size 0x%lx\n", __func__, regmap[i].size);
+			return;
+		}
+	}
+
+	count = i;
+
+	for (i = 0; verbose && (i < count); i++) {
+		printf("vaddr 0x%lx, paddr 0x%lx, size 0x%lx\n",
+				regmap[i].virt_addr, regmap[i].phys_addr, regmap[i].size);
+	}
+
+	for (i = 0; i < 32; i++) {
+		if (!(bitmap & (1 << i)))
+			continue;
+
+		writel(0, DRAMC_DRAM_BASE + 0x40c + 0x4 * i);
+		writel(PAGE_ENTRY_MASK, DRAMC_DRAM_BASE + 0x48c + 0x4 * i);
+	}
+
+	regval = PAGE_ATTR_RO | PAGE_ENTRY_MASK;
+	regval |=regval << 16;
+	for (i = 0; i < PAGE_ENTRY_TOTAL; i += 2)
+		writel(regval, DRAMC_DRAM_BASE + 0x10000 + i * 2);
+
+	for (i = 0; i < count; i++) {
+		entry_start = regmap[i].virt_addr / page_size;
+		entry_count = regmap[i].size / page_size;
+		page_start = regmap[i].phys_addr / page_size;
+
+		for (j = entry_start; j < entry_start + entry_count; j += 2) {
+			regval = page_start++;
+			regval |= page_start++ << 16;
+			writel(regval, DRAMC_DRAM_BASE + 0x10000 + j * 2);
+		}
+	}
+
+	writel(bitmap, DRAMC_DRAM_BASE + 0x400);
+}
+#else
+void fdt_setup_att_regmap(void *fdt)
+{
+}
+#endif
+
 /*
  * This function is called right before the kernel is booted. "blob" is the
  * device tree that will be passed to the kernel.
@@ -182,6 +290,8 @@ int ft_system_setup(void *blob, struct bd_info *bd)
 		printf("fdt update dram burst size: %s\n", fdt_strerror(rval));
 		return rval;
 	}
+
+	fdt_setup_att_regmap(blob);
 
 	return 0;
 }

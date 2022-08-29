@@ -60,7 +60,19 @@
 	"boot_nand=setenv bootargs "						\
 		"console=${console} ${bootargs_nand} ${pcie_arg} ${mtdparts}; "		\
 		"nand read ${kernel_addr} kernel; "				\
-		"booti ${kernel_addr} - ${fdtaddr} \0"
+		"booti ${kernel_addr} - ${fdtaddr} \0"                                   \
+		"init_sd_gpio=md 0x20e4016000;"                                          \
+		        "mw 0x20e4016004 0x10;"                                          \
+		        "mw 0x20e4016028 0x10;"                                          \
+		        "mw 0x20e4016000 0x10;"                                          \
+		        "mw 0x20e401602C 0x1;"                                           \
+		        "mmc rescan;"                                                    \
+		        "mmc dev 1 \0"                                                   \
+		"bootargs_sd=root=/dev/mmcblk1p2 rw rootfstype=ext4 init=/sbin/init \0"  \
+		"boot_sd=run init_sd_gpio;"                                              \
+		        "setenv bootargs console=${console} ${bootargs_sd} ${pcie_arg};" \
+		        "ext4load mmc 1:1 ${kernel_addr} Image;"                         \
+		        "booti ${kernel_addr} - ${fdtaddr} \0"
 #endif
 
 #define CONFIG_BOOTCOMMAND							\

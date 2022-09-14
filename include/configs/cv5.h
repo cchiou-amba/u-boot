@@ -76,13 +76,13 @@
 #endif
 
 #define CONFIG_BOOTCOMMAND							\
-	"if test ${AmbaEnv:boot_mode} = nand;"					\
+	"if test ${AmbaEnv_boot_mode} = nand;"					\
 		"then "								\
 			"run boot_nand;"					\
-		"elif test ${AmbaEnv:boot_mode} = mmc;"				\
+		"elif test ${AmbaEnv_boot_mode} = mmc;"				\
 		"then "								\
 			"echo eMMC boot;"					\
-		"elif test ${AmbaEnv:boot_mode} = spinor;"			\
+		"elif test ${AmbaEnv_boot_mode} = spinor;"			\
 		"then "								\
 			"echo spinor boot;"					\
 		"else "								\

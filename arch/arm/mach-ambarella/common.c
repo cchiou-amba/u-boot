@@ -41,9 +41,9 @@ struct mm_region *mem_map = mach_mem_map;
 static void env_set_poc_info(void)
 {
 	int rval = 0, boot;
-	const char *env = "AmbaEnv:boot_mode";
+	const char *env = "AmbaEnv_boot_mode";
 
-	env_set_hex("AmbaEnv:poc", rct_system_config());
+	env_set_hex("AmbaEnv_poc", rct_system_config());
 
 	boot = rct_system_boot_from();
 

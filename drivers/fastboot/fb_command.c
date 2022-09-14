@@ -40,6 +40,7 @@ static void reboot_bootloader(char *, char *);
 #if CONFIG_IS_ENABLED(FASTBOOT_CMD_OEM_FORMAT)
 static void oem_format(char *, char *);
 #endif
+static void oem_cmd(char *, char *);
 
 static const struct {
 	const char *command;
@@ -89,6 +90,10 @@ static const struct {
 		.dispatch = oem_format,
 	},
 #endif
+	[FASTBOOT_COMMAND_OEM_CMD] = {
+		.command = "oem cmd",
+		.dispatch = oem_cmd,
+	},
 };
 
 /**
@@ -336,3 +341,13 @@ static void oem_format(char *cmd_parameter, char *response)
 	}
 }
 #endif
+
+static void oem_cmd(char *cmd_parameter, char *response)
+{
+	printf("uboot cmd is %s\n", cmd_parameter);
+
+	if (run_command(cmd_parameter, 0))
+		fastboot_fail("", response);
+	else
+		fastboot_okay(NULL, response);
+}

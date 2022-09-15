@@ -609,3 +609,55 @@ void fastboot_mmc_erase(const char *cmd, char *response)
 	       blks_size * info.blksz, cmd);
 	fastboot_okay(NULL, response);
 }
+
+void fastboot_mmc_flash_bst_write(const char *cmd, void *download_buffer,
+			      u32 download_bytes, char *response)
+{
+	struct blk_desc *dev_desc;
+	lbaint_t blkcnt;
+	lbaint_t blks;
+	int ret;
+
+	dev_desc = blk_get_dev("mmc", CONFIG_FASTBOOT_FLASH_MMC_DEV);
+	if (!dev_desc || dev_desc->type == DEV_TYPE_UNKNOWN) {
+		pr_err("invalid mmc device\n");
+		fastboot_fail("invalid mmc device", response);
+		return;
+	}
+
+	ret = blk_dselect_hwpart(dev_desc, CONFIG_BST_EMMC_PARTITION);
+	if (ret) {
+		debug("%s: Failed to select h/w partition: err-%d\n", __func__,
+		      ret);
+		fastboot_fail("Failed to select h/w partition", response);
+		return;
+	}
+
+	/* determine number of blocks to write */
+	blkcnt = ((download_bytes + (512 - 1)) & ~(512 - 1));
+	blkcnt = blkcnt >> 9;//right shift 12, divide 512 to get blk count
+
+	puts("Flashing Raw Image\n");
+
+	blks = fb_mmc_blk_write(dev_desc, 0, blkcnt, download_buffer);
+
+	if (blks != blkcnt) {
+		pr_err("failed writing to device %d\n", dev_desc->devnum);
+		fastboot_fail("failed writing to device", response);
+		return;
+	}
+
+	printf("........ wrote " LBAFU " bytes to boot partition %d\n", blkcnt * 512,
+	    CONFIG_BST_EMMC_PARTITION);
+
+	/* switch to user partition */
+	ret = blk_dselect_hwpart(dev_desc, 0);
+	if (ret) {
+		debug("%s: Failed to select h/w partition: err-%d\n", __func__,
+		      ret);
+		fastboot_fail("Failed to select user partition", response);
+		return;
+	}
+
+	fastboot_okay(NULL, response);
+}

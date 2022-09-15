@@ -275,6 +275,12 @@ void fastboot_data_complete(char *response)
 static void flash(char *cmd_parameter, char *response)
 {
 #if CONFIG_IS_ENABLED(FASTBOOT_FLASH_MMC)
+	if (strcmp(cmd_parameter, "bst") == 0) {
+		fastboot_mmc_flash_bst_write(cmd_parameter, fastboot_buf_addr, image_size,
+				 response);
+		return;
+	}
+
 	fastboot_mmc_flash_write(cmd_parameter, fastboot_buf_addr, image_size,
 				 response);
 #endif

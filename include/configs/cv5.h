@@ -48,9 +48,13 @@
 #endif /* PARTS_DEFAULT */
 
 
-#ifndef CONFIG_FASTBOOT_FLASH_NAND
+#ifdef CONFIG_SUPPORT_EMMC_BOOT
 #define CONFIG_EXTRA_ENV_SETTINGS               \
-        "partitions=" PARTS_DEFAULT "\0"
+        "partitions=" PARTS_DEFAULT 	\
+	"pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi fw_devlink=permissive \0"	\
+	"boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p3 rw rootfstype=ext4 init=/linuxrc rootwait ${pcie_arg};"	\
+	"mmc read ${kernel_addr} 0x1000 0x8000;"	\
+	"booti ${kernel_addr} - ${fdtaddr} \0"
 
 #else
 #define CONFIG_EXTRA_ENV_SETTINGS						\
@@ -79,9 +83,10 @@
 	"if test ${AmbaEnv_boot_mode} = nand;"					\
 		"then "								\
 			"run boot_nand;"					\
-		"elif test ${AmbaEnv_boot_mode} = mmc;"				\
+		"elif test ${AmbaEnv_boot_mode} = emmc;"				\
 		"then "								\
 			"echo eMMC boot;"					\
+			"run boot_emmc;"					\
 		"elif test ${AmbaEnv_boot_mode} = spinor;"			\
 		"then "								\
 			"echo spinor boot;"					\

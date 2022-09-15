@@ -177,6 +177,12 @@ config FASTBOOT_CMD_OEM_FORMAT
 	  relies on the env variable partitions to contain the list of
 	  partitions as required by the gpt command.
 
+config BST_EMMC_PARTITION
+	int "Define FASTBOOT MMC FLASH default device"
+	default 1
+	help
+	  Select bst partition, 1 for boot partion 1 and 2 for boot partition 2.
+
 endif # FASTBOOT
 
 endmenu

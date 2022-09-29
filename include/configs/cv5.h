@@ -42,56 +42,90 @@
 #define PARTS_DEFAULT \
         /* Linux partitions */ \
         "uuid_disk=${uuid_gpt_disk};" \
-        "name=uboot,start=1M,size=1M,uuid=${uuid_gpt_uboot};" \
-        "name=kernel,size=20M,uuid=${uuid_gpt_kernel};" \
-        "name=rootfs,size=512M,uuid=${uuid_gpt_rootfs}\0"
+        "name=kernel,start=${size_start},size=${size_kernel},uuid=${uuid_gpt_kernel};" \
+        "name=rootfs,size=${size_rootfs},uuid=${uuid_gpt_rootfs}\0"
 #endif /* PARTS_DEFAULT */
+
+#define EXTRA_ENV_COMMON_SETTINGS        \
+    "serial#=Ambarella CV5\0"            \
+    "init_sd_gpio=md 0x20e4016000;"      \
+        "mw 0x20e4016004 0x10;"          \
+        "mw 0x20e4016028 0x10;"          \
+        "mw 0x20e4016000 0x10;"          \
+        "mw 0x20e401602C 0x1;"           \
+        "mmc rescan;"                    \
+        "mmc dev ${sd_dev_num}\0"        \
+    "sd_dev_num=1\0"                     \
+    "sd_boot_part=1\0"                   \
+    "fdt_addr_r=0x0\0"                   \
+    "extlinux_addr_r=0x1000\0"           \
+    "ramdisk_addr_r=0x2000\0"            \
+    "kernel_addr_r=0x1C00000\0"          \
+    "kernel_comp_addr_r=0x2800000\0"     \
+    "kernel_comp_size=0x2800000\0"       \
+    "boot_sd_extlinux=run init_sd_gpio;" \
+        "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "\
+        "${extlinux_addr_r} /extlinux/extlinux.conf\0"
 
 
 #ifdef CONFIG_SUPPORT_EMMC_BOOT
 #define CONFIG_EXTRA_ENV_SETTINGS               \
-        "partitions=" PARTS_DEFAULT 	\
+        "partitions=" PARTS_DEFAULT             \
 	"pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi fw_devlink=permissive \0"	\
-	"boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p3 rw rootfstype=ext4 init=/linuxrc rootwait ${pcie_arg};"	\
+	"boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p2 rw rootfstype=ext4 init=/linuxrc rootwait ${pcie_arg};"            \
 	"mmc read ${kernel_addr} 0x1000 0x8000;"	\
-	"booti ${kernel_addr} - ${fdtaddr} \0"
+	"booti ${kernel_addr} - ${fdtaddr} \0"      \
+    EXTRA_ENV_COMMON_SETTINGS                   \
+    "size_start=1M\0"                           \
+    "size_kernel=256M\0"                        \
+    "size_rootfs=29G\0"                         \
+    "init_emmc_part=gpt write mmc 0 ${partitions}\0"\
+    "init_emmc=mmc bootbus 0 2 1 0;"                \
+        "mmc partconf 0 0 1 0;"                     \
+        "mmc rst-function 0 1\0"                    \
+    "mmc_dev_num=0\0"                               \
+    "mmc_boot_part=1\0"                             \
+    "boot_emmc_extlinux=mmc rescan;"                \
+        "mmc dev ${mmc_dev_num};"                   \
+        "sysboot mmc ${mmc_dev_num}:${mmc_boot_part} any "\
+        "${extlinux_addr_r} /extlinux/extlinux.conf\0"    \
+    "boot_target=sd_extlinux emmc_extlinux emmc\0"
+
 
 #else
 #define CONFIG_EXTRA_ENV_SETTINGS						\
-	"serial#=Ambarella CV5\0"						\
 	"bootargs_nand= ubi.mtd=rootfs rootfstype=ubifs rw root=ubi0:rootfs init=/linuxrc \0"	\
 	"pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi fw_devlink=permissive \0" \
 	"boot_nand=setenv bootargs "						\
 		"console=${console} ${bootargs_nand} ${pcie_arg} ${mtdparts}; "		\
 		"nand read ${kernel_addr} kernel; "				\
 		"booti ${kernel_addr} - ${fdtaddr} \0"                                   \
-		"init_sd_gpio=md 0x20e4016000;"                                          \
-		        "mw 0x20e4016004 0x10;"                                          \
-		        "mw 0x20e4016028 0x10;"                                          \
-		        "mw 0x20e4016000 0x10;"                                          \
-		        "mw 0x20e401602C 0x1;"                                           \
-		        "mmc rescan;"                                                    \
-		        "mmc dev 1 \0"                                                   \
-		"bootargs_sd=root=/dev/mmcblk1p2 rw rootfstype=ext4 init=/sbin/init \0"  \
-		"boot_sd=run init_sd_gpio;"                                              \
-		        "setenv bootargs console=${console} ${bootargs_sd} ${pcie_arg};" \
-		        "ext4load mmc 1:1 ${kernel_addr} Image;"                         \
-		        "booti ${kernel_addr} - ${fdtaddr} \0"
+    EXTRA_ENV_COMMON_SETTINGS \
+    "boot_target=sd_extlinux nand\0"
+
+
 #endif
 
 #define CONFIG_BOOTCOMMAND							\
-	"if test ${AmbaEnv_boot_mode} = nand;"					\
-		"then "								\
-			"run boot_nand;"					\
-		"elif test ${AmbaEnv_boot_mode} = emmc;"				\
-		"then "								\
-			"echo eMMC boot;"					\
-			"run boot_emmc;"					\
-		"elif test ${AmbaEnv_boot_mode} = spinor;"			\
-		"then "								\
-			"echo spinor boot;"					\
-		"else "								\
-			"echo Unsupport ...;"					\
-	"fi"									\
+    "if test ${AmbaEnv_boot_mode} = nand;"          \
+    "then "                                         \
+        "for target in ${boot_target};"             \
+        "do "                                       \
+            "echo 'Tring to boot from:'${target};"  \
+            "run boot_${target};"                   \
+        "done;"                                     \
+    "elif test ${AmbaEnv_boot_mode} = emmc;"        \
+    "then "                                         \
+        "for target in ${boot_target};"             \
+        "do "                                       \
+            "echo 'Tring to boot from':${target};"  \
+            "run boot_${target};"                   \
+        "done;"                                     \
+    "elif test ${AmbaEnv_boot_mode} = spinor;"      \
+    "then "                                         \
+        "echo spinor boot;"                         \
+    "else "                                         \
+        "echo Unsupport ...;"                       \
+    "fi"
 
 #endif

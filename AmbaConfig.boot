@@ -31,7 +31,6 @@ menu "U-Boot Configuration"
 config U_BOOT_RAM_START
 	hex "U-boot starting address"
 	default 0x00000000
-	help
 
 config CONFIG_UBOOT_DEFCONFIG_STRING
 	string "U-Boot Default Configuration"
@@ -40,7 +39,6 @@ config CONFIG_UBOOT_DEFCONFIG_STRING
 config CONFIG_UBOOT_DTB_SIZE
 	hex "Device Tree Size appended to U-Boot"
 	default 0x20000
-	help
 
 endmenu
 

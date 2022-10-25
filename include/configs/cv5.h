@@ -60,9 +60,9 @@
     "fdt_addr_r=0x0\0"                   \
     "extlinux_addr_r=0x1000\0"           \
     "ramdisk_addr_r=0x2000\0"            \
-    "kernel_addr_r=0x1C00000\0"          \
-    "kernel_comp_addr_r=0x2800000\0"     \
-    "kernel_comp_size=0x2800000\0"       \
+    "kernel_addr_r=0x1E00000\0"          \
+    "kernel_comp_addr_r=0x2A00000\0"     \
+    "kernel_comp_size=0x2A00000\0"       \
     "boot_sd_extlinux=run init_sd_gpio;" \
         "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "\
         "${extlinux_addr_r} /extlinux/extlinux.conf\0"
@@ -73,12 +73,14 @@
         "partitions=" PARTS_DEFAULT             \
 	"pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi fw_devlink=permissive \0"	\
 	"boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p2 rw rootfstype=ext4 init=/linuxrc rootwait ${pcie_arg};"            \
-	"mmc read ${kernel_addr} 0x1000 0x8000;"	\
+	"mmc read ${kernel_addr} ${mmc_read_blk} ${mmc_read_cnt};"	\
 	"booti ${kernel_addr} - ${fdtaddr} \0"      \
     EXTRA_ENV_COMMON_SETTINGS                   \
-    "size_start=1M\0"                           \
+    "size_start=2M\0"                           \
     "size_kernel=256M\0"                        \
-    "size_rootfs=29G\0"                         \
+    "size_rootfs=2G\0"                          \
+    "mmc_read_blk=0x1000\0"                     \
+    "mmc_read_cnt=0x8000\0"                     \
     "init_emmc_part=gpt write mmc 0 ${partitions}\0"\
     "init_emmc=mmc bootbus 0 2 1 0;"                \
         "mmc partconf 0 0 1 0;"                     \

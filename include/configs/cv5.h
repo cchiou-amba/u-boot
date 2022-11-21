@@ -61,8 +61,8 @@
     "extlinux_addr_r=0x1000\0"           \
     "ramdisk_addr_r=0x2000\0"            \
     "kernel_addr_r=0x1E00000\0"          \
-    "kernel_comp_addr_r=0x2A00000\0"     \
-    "kernel_comp_size=0x2A00000\0"       \
+    "kernel_comp_addr_r=0x3000000\0"     \
+    "kernel_comp_size=0x3000000\0"       \
     "boot_sd_extlinux=run init_sd_gpio;" \
         "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "\
         "${extlinux_addr_r} /extlinux/extlinux.conf\0"

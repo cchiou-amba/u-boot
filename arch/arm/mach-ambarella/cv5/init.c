@@ -46,6 +46,9 @@ void plat_f_soc_init(void)
 
 void plat_r_reset_cpu(void)
 {
+	clrbits_32(0x20f2000028, (1 << 17) | (1 << 18) | (1 << 19));
+	mdelay(1);
+	setbits_32(0x20f2000028, (1 << 17) | (1 << 18) | (1 << 19));
 	rct_writel(0x068, 0xE);
 	dsb();
 	rct_writel(0x068, 0xF);

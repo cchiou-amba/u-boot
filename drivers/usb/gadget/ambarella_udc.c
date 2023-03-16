@@ -1505,7 +1505,6 @@ static void ambarella_init_usb(struct ambarella_udc *udc)
 
 static void usb_phy_enable(struct ambarella_udc *udc)
 {
-
 #if 0
 	regmap_update_bits(udc->rct_regmap, ANA_PWR_OFFSET, 0x3 << 1, 0x3);
 	regmap_update_bits(udc->rct_regmap, ANA_PWR_OFFSET, 0x3 << 12, 0x3);
@@ -1521,10 +1520,14 @@ static void usb_phy_enable(struct ambarella_udc *udc)
 static void ambarella_udc_reset(struct ambarella_udc *udc)
 {
 	if (udc->scr_reg) {
-		regmap_update_bits(udc->scr_reg, UDC_SOFT_RESET_OFFSET, UDC_SOFT_RESET_MASK, UDC_SOFT_RESET_MASK);
-		mdelay(1);
-		regmap_update_bits(udc->scr_reg, UDC_SOFT_RESET_OFFSET, UDC_SOFT_RESET_MASK, 0x0);
-		mdelay(1);
+		/*
+		 * On CV3 and cv72, this reset operation leads to usb device
+		 * halt when booting from USB.
+		 */
+		//regmap_update_bits(udc->scr_reg, UDC_SOFT_RESET_OFFSET, UDC_SOFT_RESET_MASK, UDC_SOFT_RESET_MASK);
+		//mdelay(1);
+		//regmap_update_bits(udc->scr_reg, UDC_SOFT_RESET_OFFSET, UDC_SOFT_RESET_MASK, 0x0);
+		//mdelay(1);
 	}
 };
 static int ambarella_udc_probe(struct udevice *dev)

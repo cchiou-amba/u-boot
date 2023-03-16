@@ -20,6 +20,9 @@ config ARCH_AMBARELLA_S6LM
 config ARCH_AMBARELLA_CV5
 	def_bool n
 
+config ARCH_AMBARELLA_CV72
+	def_bool n
+
 choice
 	prompt "Ambarella board select"
 
@@ -47,11 +50,18 @@ config TARGET_CV5_DEVKIT
 	help
 		Ambarella International LP
 
+config TARGET_CV72_DEVKIT
+	bool "Ambarella CV72 devkit"
+	select ARCH_AMBARELLA_CV72
+	help
+		Ambarella International LP
+
 endchoice
 
 #source "board/ambarella/s6lm_devkit/Kconfig"
 #source "board/ambarella/cv25_devkit/Kconfig"
 #source "board/ambarella/cv28_devkit/Kconfig"
 source "board/ambarella/cv5_devkit/Kconfig"
+source "board/ambarella/cv72_devkit/Kconfig"
 
 endif

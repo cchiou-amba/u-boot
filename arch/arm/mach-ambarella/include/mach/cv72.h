@@ -1,5 +1,5 @@
-#ifndef __MACH_SOC_CV5_H__
-#define __MACH_SOC_CV5_H__
+#ifndef __MACH_SOC_CV72_H__
+#define __MACH_SOC_CV72_H__
 
 #define DRAM_SPACE_START	0x0000000000
 #define DRAM_SPACE_SIZE		0x1000000000

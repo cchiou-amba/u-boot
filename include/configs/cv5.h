@@ -1,5 +1,5 @@
-#ifndef __PLAT_S6LM_H__
-#define __PLAT_S6LM_H__
+#ifndef __PLAT_CV5_H__
+#define __PLAT_CV5_H__
 
 #include <linux/sizes.h>
 #include <asm/arch/soc.h>

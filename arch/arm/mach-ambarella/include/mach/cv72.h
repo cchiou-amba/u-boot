@@ -38,7 +38,8 @@
 #define SYS_CONFIG_NAND_SPINAND		0xffffffff /* not used, spinand only */
 #define SYS_CONFIG_NAND_SCKMODE		0x00040000
 #define SYS_CONFIG_NAND_4K_FIFO		0xffffffff /* not used */
-#define SYS_CONFIG_NAND_8K_FIFO		0x00100000 /* not used */
+#define SYS_CONFIG_NAND_8K_FIFO		0x00080000 /* not used */
+#define SYS_CONFIG_NAND_32K_FIFO		0x00100000 /* not used */
 #define SYS_CONFIG_NAND_PAGE_SIZE	0x00020000
 #define SYS_CONFIG_NAND_READ_CONFIRM	0xffffffff /* not used */
 #define SYS_CONFIG_NAND_ECC_BCH_EN	0x00008000

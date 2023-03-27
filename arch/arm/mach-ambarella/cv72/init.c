@@ -75,6 +75,7 @@ void plat_device_init(void)
 #ifndef CONFIG_AARCH64_TRUSTZONE
 static void dram_set_arbiter(void)
 {
+#if 0
 	{
 			unsigned long shmem_base = 0xff00000000UL;
 			u32 i = 0;
@@ -87,7 +88,7 @@ static void dram_set_arbiter(void)
 			}
 			printf("Reset Shared Memory Done \n");
 	}
-
+#endif
 	writel(0x00000509, 0xff08004000);    // 0x0000 - cortex0wr
 	writel(0x00000509, 0xff08004004);    // 0x0004 - cortex0rd
 	writel(0x0000041d, 0xff08004008);    // 0x0010 - usb3h0

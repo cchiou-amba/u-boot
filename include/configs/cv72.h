@@ -48,11 +48,11 @@
 
 #define EXTRA_ENV_COMMON_SETTINGS        \
     "serial#=Ambarella CV72\0"            \
-    "init_sd_gpio=md 0x20e4016000;"      \
-        "mw 0x20e4016004 0x10;"          \
-        "mw 0x20e4016028 0x10;"          \
-        "mw 0x20e4016000 0x10;"          \
-        "mw 0x20e401602C 0x1;"           \
+    "init_sd_gpio=md 0xffe4016000;"      \
+        "mw 0xffe4016004 0x800;"          \
+        "mw 0xffe4016028 0x800;"          \
+        "mw 0xffe4016000 0x800;"          \
+        "mw 0xffe401602C 0x1;"           \
         "mmc rescan;"                    \
         "mmc dev ${sd_dev_num}\0"        \
     "sd_dev_num=1\0"                     \

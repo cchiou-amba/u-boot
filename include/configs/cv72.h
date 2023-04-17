@@ -60,7 +60,7 @@
     "fdt_addr_r=0x0\0"                   \
     "extlinux_addr_r=0x1000\0"           \
     "ramdisk_addr_r=0x2000\0"            \
-    "kernel_addr_r=0x1E00000\0"          \
+    "kernel_addr_r=0x2000000\0"          \
     "kernel_comp_addr_r=0x3000000\0"     \
     "kernel_comp_size=0x3000000\0"       \
     "boot_sd_extlinux=run init_sd_gpio;" \
@@ -95,7 +95,6 @@
 
 
 #else
-#if 1
 #define CONFIG_EXTRA_ENV_SETTINGS						\
 	"bootargs_nand= ubi.mtd=rootfs rootfstype=ubifs rw root=ubi0:rootfs init=/linuxrc \0"	\
 	"pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi fw_devlink=permissive \0" \
@@ -104,8 +103,7 @@
 		"nand read ${kernel_addr} kernel; "				\
 		"booti ${kernel_addr} - ${fdtaddr} \0"                                   \
     EXTRA_ENV_COMMON_SETTINGS \
-    "boot_target=nand\0"
-#endif
+    "boot_target=sd_extlinux nand\0"
 
 
 #endif

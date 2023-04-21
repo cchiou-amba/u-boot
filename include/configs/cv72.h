@@ -60,6 +60,7 @@
     "fdt_addr_r=0x0\0"                   \
     "extlinux_addr_r=0x1000\0"           \
     "ramdisk_addr_r=0x2000\0"            \
+    "initrd_high=0x2000000\0"            \
     "kernel_addr_r=0x2000000\0"          \
     "kernel_comp_addr_r=0x3000000\0"     \
     "kernel_comp_size=0x3000000\0"       \

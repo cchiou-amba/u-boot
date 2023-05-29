@@ -184,6 +184,11 @@ config SPI_FLASH_DATAFLASH
 
 	  If unsure, say N
 
+config AMBARELLA_SPINOR
+	bool "Ambarella SPINOR support"
+	help
+	  TODO, add the description
+
 config SPI_FLASH_MTD
 	bool "SPI Flash MTD support"
 	depends on SPI_FLASH && MTD

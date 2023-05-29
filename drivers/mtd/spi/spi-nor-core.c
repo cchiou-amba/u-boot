@@ -2483,9 +2483,15 @@ int spi_nor_scan(struct spi_nor *nor)
 	const struct flash_info *info = NULL;
 	struct mtd_info *mtd = &nor->mtd;
 	struct spi_nor_hwcaps hwcaps = {
+#ifndef CONFIG_AMBARELLA_SPINOR
 		.mask = SNOR_HWCAPS_READ |
 			SNOR_HWCAPS_READ_FAST |
 			SNOR_HWCAPS_PP,
+#else
+		.mask = SNOR_HWCAPS_READ | SNOR_HWCAPS_READ_FAST |
+			SNOR_HWCAPS_READ_1_1_2 | SNOR_HWCAPS_READ_1_1_4 |
+			SNOR_HWCAPS_READ_1_1_8 | SNOR_HWCAPS_PP,
+#endif
 	};
 	struct spi_slave *spi = nor->spi;
 	int ret;
@@ -2494,6 +2500,7 @@ int spi_nor_scan(struct spi_nor *nor)
 	nor->reg_proto = SNOR_PROTO_1_1_1;
 	nor->read_proto = SNOR_PROTO_1_1_1;
 	nor->write_proto = SNOR_PROTO_1_1_1;
+#ifndef CONFIG_AMBARELLA_SPINOR
 	nor->read = spi_nor_read_data;
 	nor->write = spi_nor_write_data;
 	nor->read_reg = spi_nor_read_reg;
@@ -2519,6 +2526,7 @@ int spi_nor_scan(struct spi_nor *nor)
 		if (spi->mode & SPI_TX_DUAL)
 			hwcaps.mask |= SNOR_HWCAPS_READ_1_2_2;
 	}
+#endif
 
 	info = spi_nor_read_id(nor);
 	if (IS_ERR_OR_NULL(info))

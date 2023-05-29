@@ -769,6 +769,9 @@ static init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_MTD_NOR_FLASH
 	initr_flash,
 #endif
+#ifdef CONFIG_AMBARELLA_SPINOR
+	flash_init,
+#endif
 	INIT_FUNC_WATCHDOG_RESET
 #if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_X86)
 	/* initialize higher level parts of CPU like time base and timers */

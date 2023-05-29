@@ -263,6 +263,13 @@ void fdt_setup_att_regmap(void *fdt)
  * This function is called right before the kernel is booted. "blob" is the
  * device tree that will be passed to the kernel.
  */
+#if defined(CONFIG_ARCH_AMBARELLA_CV3)
+int ft_system_setup(void *blob, struct bd_info *bd)
+{
+	/* CV3: do nothing for now */
+	return 0;
+}
+#else
 int ft_system_setup(void *blob, struct bd_info *bd)
 {
 	uintptr_t iavp, iavs, fbp, fbs;
@@ -295,3 +302,4 @@ int ft_system_setup(void *blob, struct bd_info *bd)
 
 	return 0;
 }
+#endif

@@ -1,0 +1,311 @@
+/*
+ * board level device tree source
+ */
+
+/dts-v1/;
+
+/include/ "ambarella-cv3.dtsi"
+/include/ "ambarella-cv3-uboot.dtsi"
+
+/ {
+	model = "Ambarella CV3 DKMINI Board";
+	compatible = "ambarella,cv3bub", "ambarella,cv3";
+
+	aliases {
+		flexidag_sys = &cv_sys_mem;
+		flexidag_rtos = &cv_rtos_mem;
+		scheduler = &sub_scheduler;
+	};
+
+	amba_mal {
+		compatible = "ambarella,mal";
+		amb_mal_node@0 {
+			amb_mal_id = <0>;
+			memory-region = <&cv_sys_mem>;
+		};
+
+		amb_mal_node@1 {
+			amb_mal_id = <1>;
+			memory-region = <&cv_rtos_mem>;
+		};
+
+		amb_mal_node@2 {
+			amb_mal_id = <3>;
+			memory-region = <&dsp_data_buf>;
+		};
+	};
+
+	sub_scheduler: sub_scheduler0 {
+		compatible = "ambarella,sub-scheduler";
+		interrupts = <0 44 0x4>;
+		memory-region = <&cv_sys_mem>;
+		memory-region1 = <&cv_rtos_mem>;
+	};
+
+	reserved-memory {
+		cv_sys_mem: flexidag_sys {
+		};
+		cv_rtos_mem: flexidag_rtos {
+		};
+	};
+
+	gpu: gpu@4e20010000 {
+		compatible = "ambarella,pvr-gpu";
+		#address-cells = <2>;
+		#size-cells = <2>;
+		reg = <0xff 0xf5000000 0x00 0x80000>;
+		interrupts = <0 433 0x1>;
+		clocks = <&gclk_gpu>;
+	};
+
+	memory {
+		device_type = "memory";
+		/*reg = <0x0 0x200000 0x0 0x7fe00000 0x01 0x00 0x03 0x00>;*/
+		reg = <0x0 0x0 0x8 0x0>;
+	};
+
+	ahb@ffe0000000 {
+		spi_slave@e0010000 {
+			status = "ok";
+		};
+	};
+
+	sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "ak4951 @ AMBEVK";
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,widgets =
+		"Speaker", "Speaker",
+		"Headphone", "HP Jack",
+		"Line", "Line In",
+		"Line", "Line Out",
+		"Microphone", "Mic Internal",
+		"Microphone", "Mic External";
+		simple-audio-card,routing =
+		"LIN2", "Mic Bias",
+		"RIN2", "Mic Bias",
+		"Mic Bias", "Mic Internal",
+		"LIN3", "Line In",
+		"RIN3", "Line In",
+		"Line Out", "SPKLO",
+		"HP Jack", "HPL",
+		"HP Jack", "HPR",
+		"Speaker", "SPKLO";
+		status = "disabled";
+
+		simple-audio-card,dai-link@0 {
+			format = "i2s";
+
+			cpu {
+				sound-dai = <&i2s0>;
+			};
+
+			codec {
+				sound-dai = <&ak4951>;
+			};
+		};
+	};
+
+
+
+	apb@ffe4000000 {
+		ir@e4001000 {
+			status = "ok";
+		};
+	};
+};
+
+&nand0 {
+        status = "disabled";
+};
+
+
+&spinor0 {
+        status = "okay";
+};
+
+&uart1 {
+	status = "ok";
+	pinctrl-0 = <&uart1_pins_b &uart1_flow_pins_b>;
+};
+
+&i2c0 {
+	status = "ok";
+};
+
+&i2c1 {
+	pinctrl-0 = <&i2c1_pins_a>;
+	status = "ok";
+
+	ak4951: codec@12 {
+		compatible = "ambarella,ak4951";
+		#sound-dai-cells = <0>;
+		reg = <0x12>;
+	};
+};
+
+&i2c2 {
+	status = "ok";
+};
+
+&i2c3 {
+	status = "ok";
+};
+
+&i2c4 {
+	status = "ok";
+};
+
+&i2c5 {
+	status = "ok";
+};
+
+/delete-node/ &wdt_pins_b;
+
+&i2cs {
+    /delete-property/ pinctrl-0;
+};
+
+&hdmi {
+	amb,i2c-adapter = <2>;
+};
+
+&i2s0 {
+	status = "ok";
+};
+
+&spi0 {
+    /delete-property/ pinctrl-0;
+    status = "disabled";
+};
+
+&i2s0 {
+	status = "ok";
+};
+
+&sdmmc0 {
+	pwr-gpios = <&gpio 144 0x0>;
+	v18-gpios = <&gpio 145 0x0>;
+};
+
+&sdmmc1 {
+	pwr-gpios = <&gpio 146 0x0>;
+	v18-gpios = <&gpio 147 0x0>;
+	status = "ok";
+};
+
+&can0 {
+	status = "ok";
+};
+
+/*
+&can1 {
+	status = "ok";
+};
+*/
+
+/*
+&usb_cdnsp {
+	pinctrl-names = "default";
+	pinctrl-0 = <&usb_host0_pins_f>;
+};
+*/
+
+&mac0 {
+	/*
+		func stmmac_mdio_reset() reset phy : cv3bub: SW7.4=1
+		snps,reset-gpio=<&gpio 54 1>; 1 GPIO_ACTIVE_LOW; 0:GPIO_ACTIVE_HIGH
+		ref: drivers/gpio/gpiolib-of.c: of_gpio_flags_quirks
+		power-on_control: mcu->PERI_PWREN=1; ENET_VCC3V3
+
+		rx-internal-delay-ps  pico-seconds
+		tx-internal-delay-ps  pico-seconds
+		rgmii-rxid	only rx delay add by phy(ref-phy-hardware)
+		rgmii-txid	only tx delay add by phy(in-phy-reg)
+		rgmii-id 	both tx/rx delay add by phy
+		rgmii		both tx/rx delay add by mac
+
+		mac-address = [00 11 22 33 44 55];
+	*/
+	status = "ok";
+	snps,reset-gpio = <&gpio 173 1>;
+	snps,reset-active-low;
+	snps,reset-delays-us = <0 150000 100000>;
+	phy-handle = <&maca_phy0>;
+	phy-mode = "rgmii-rxid";
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,dwmac-mdio";
+		maca_phy0: ethernet-phy@0 {
+			reg = <1>;
+		};
+	};
+};
+
+&mac1 {
+	status = "ok";
+	snps,reset-gpio = <&gpio 122 1>;
+	snps,reset-active-low;
+	snps,reset-delays-us = <0 150000 100000>;
+	phy-handle = <&macb_phy0>;
+	phy-mode = "rgmii-rxid";
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,dwmac-mdio";
+		macb_phy0: ethernet-phy@0 {
+			reg = <1>;
+		};
+	};
+};
+
+&mac2 {
+	status = "ok";
+	snps,reset-gpio = <&gpio 123 1>;
+	snps,reset-active-low;
+	snps,reset-delays-us = <0 150000 100000>;
+	phy-handle = <&macc_phy0>;
+	phy-mode = "rgmii-rxid";
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,dwmac-mdio";
+		macc_phy0: ethernet-phy@0 {
+			reg = <1>;
+		};
+	};
+};
+
+&mac3 {
+	status = "ok";
+	snps,reset-gpio = <&gpio 124 1>;
+	snps,reset-active-low;
+	snps,reset-delays-us = <0 150000 100000>;
+	phy-handle = <&macd_phy0>;
+	phy-mode = "rgmii-rxid";
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "snps,dwmac-mdio";
+		macd_phy0: ethernet-phy@0 {
+			reg = <1>;
+		};
+	};
+};
+
+&pcie1_phyrst {
+	status = "ok";
+};
+
+&pciec1 {
+    status = "ok";
+};
+
+&pcie1_udma {
+    status = "ok";
+};
+
+&cdns_pcie1_phy {
+    status = "ok";
+};

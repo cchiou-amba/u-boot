@@ -42,6 +42,8 @@ static int setup_flash_device(void)
 	struct udevice *new;
 	int	ret;
 
+	/* if used amba spi-nor controller, spi_flash_probe is no need */
+#ifndef CONFIG_AMBARELLA_SPINOR
 	/* speed and mode will be read from DT */
 	ret = spi_flash_probe_bus_cs(CONFIG_ENV_SPI_BUS, CONFIG_ENV_SPI_CS,
 				     CONFIG_ENV_SPI_MAX_HZ, CONFIG_ENV_SPI_MODE,
@@ -50,7 +52,13 @@ static int setup_flash_device(void)
 		env_set_default("spi_flash_probe_bus_cs() failed", 0);
 		return ret;
 	}
-
+#else
+	ret = uclass_get_device_by_seq(UCLASS_SPI_FLASH, 0, &new);
+	if (ret) {
+		env_set_default("uclass_get_device_by_seq() failed", 0);
+		return ret;
+	}
+#endif
 	env_flash = dev_get_uclass_priv(new);
 #else
 	if (env_flash)

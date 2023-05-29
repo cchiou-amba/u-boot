@@ -54,6 +54,7 @@ int spi_flash_probe_bus_cs(unsigned int busnum, unsigned int cs,
 			   unsigned int max_hz, unsigned int spi_mode,
 			   struct udevice **devp)
 {
+#ifndef CONFIG_AMBARELLA_SPINOR
 	struct spi_slave *slave;
 	struct udevice *bus;
 	char *str;
@@ -74,6 +75,29 @@ int spi_flash_probe_bus_cs(unsigned int busnum, unsigned int cs,
 
 	*devp = slave->dev;
 	return 0;
+#else  /*CONFIG_AMBARELLA_SPINOR*/
+	int ret;
+	struct udevice *dev;
+
+	ret = uclass_get_device_by_seq(UCLASS_SPI_FLASH, 0, &dev);
+        if (ret && ret != -ENODEV)
+		printf("Initialize ambarella spinor controller error %d\n", ret);
+/*
+	struct spi_nor *flash;
+	struct mtd_info *mtd;
+	flash = dev_get_uclass_priv(dev);
+	mtd = &flash->mtd;
+
+	printf("udev name = %s\n", dev->name);
+	printf("udev point addr = %p\n", *dev);
+	printf("mtd point addr = %p\n", *mtd);
+	printf("flash addr = %p\n", flash);
+	printf("flash size = %d\n", flash->size);
+*/
+
+	*devp = dev;
+	return 0;
+#endif  /*CONFIG_AMBARELLA_SPINOR*/
 }
 
 static int spi_flash_post_bind(struct udevice *dev)

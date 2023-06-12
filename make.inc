@@ -51,7 +51,8 @@ u-boot-defconfig:
 
 u-boot-ext.dtb: $(AMB_BOARD_DIR)/bsp/$(AMB_BOARD).dts
 	@mkdir -p $(AMB_BOARD_OUT)/u-boot
-	@$(CC) $(DT_CFLAGS) $< |dtc $(DT_OPTIONS) -O dtb -o $(AMB_BOARD_OUT)/u-boot/$@
+	@$(CC) $(DT_CFLAGS) $< | tee $(AMB_BOARD_OUT)/u-boot/u-boot-ext.dts | dtc $(DT_OPTIONS) -O dtb -o $(AMB_BOARD_OUT)/u-boot/$@
+	@sed -i -e "s/^#.*$$//g" -e "/^$$/d" $(AMB_BOARD_OUT)/u-boot/u-boot-ext.dts
 	@echo "Build $@ Done ..."
 
 .PHONY: u-boot

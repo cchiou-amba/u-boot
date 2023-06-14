@@ -46,26 +46,32 @@
         "name=rootfs,size=${size_rootfs},uuid=${uuid_gpt_rootfs}\0"
 #endif /* PARTS_DEFAULT */
 
-#define EXTRA_ENV_COMMON_SETTINGS        \
-    "serial#=Ambarella CV3\0"            \
-    "init_sd_gpio=md 0xffe4017000;"      \
-        "mw 0xffe4017004 0x10000;"       \
-        "mw 0xffe4017028 0x10000;"       \
-        "mw 0xffe4017000 0x10000;"       \
-        "mw 0xffe401702C 0xffffffff;"    \
-        "mmc rescan;"                    \
-        "mmc dev ${sd_dev_num}\0"        \
-    "sd_dev_num=0\0"                     \
-    "sd_boot_part=1\0"                   \
-    "fdt_addr_r=0x200000\0"                   \
-    "extlinux_addr_r=0x401000\0"           \
-    "ramdisk_addr_r=0x402000\0"            \
-    "kernel_addr_r=0x400000\0"          \
-    "kernel_comp_addr_r=0x2800000\0"     \
-    "kernel_comp_size=0x2800000\0"       \
-    "fdt_high=0xffffffffffffffff\0"       \
-    "boot_sd_extlinux=run init_sd_gpio;" \
-    "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "\
+#define EXTRA_ENV_COMMON_SETTINGS                            \
+    "serial#=Ambarella CV3\0"                                \
+    "init_usb3_gpio=md 0xffe4014000;"                        \
+        "mw 0xffe4014004 0x2;"                               \
+        "mw 0xffe4014028 0x2;"                               \
+        "mw 0xffe4014000 0x0;"                               \
+        "mw 0xffe401402C 0x1;"                               \
+        "md 0xffe4014000\0"                                  \
+    "init_sd_gpio=md 0xffe4017000;"                          \
+        "mw 0xffe4017004 0x10000;"                           \
+        "mw 0xffe4017028 0x10000;"                           \
+        "mw 0xffe4017000 0x10000;"                           \
+        "mw 0xffe401702C 0xffffffff;"                        \
+        "mmc rescan;"                                        \
+        "mmc dev ${sd_dev_num}\0"                            \
+    "sd_dev_num=0\0"                                         \
+    "sd_boot_part=1\0"                                       \
+    "fdt_addr_r=0x200000\0"                                  \
+    "extlinux_addr_r=0x401000\0"                             \
+    "ramdisk_addr_r=0x402000\0"                              \
+    "kernel_addr_r=0x400000\0"                               \
+    "kernel_comp_addr_r=0x2800000\0"                         \
+    "kernel_comp_size=0x2800000\0"                           \
+    "fdt_high=0xffffffffffffffff\0"                          \
+    "boot_sd_extlinux=run init_usb3_gpio; run init_sd_gpio;" \
+    "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "         \
     "${extlinux_addr_r} /extlinux/extlinux.conf\0"
 
 

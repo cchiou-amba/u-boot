@@ -1211,9 +1211,9 @@ endif
 
 u-boot.bin: u-boot-fit-dtb.bin FORCE
 	$(call if_changed,copy)
-ifneq ($(CONFIG_AMBARELLA_SPINOR),)
-	$(objtree)/scripts/uboot-align.sh $(objtree) $< $@
-endif
+#ifneq ($(CONFIG_AMBARELLA_SPINOR),)
+#	$(objtree)/scripts/uboot-align.sh $(objtree) $< $@
+#endif
 
 u-boot-dtb.bin: u-boot-nodtb.bin dts/dt.dtb FORCE
 	$(call if_changed,cat)

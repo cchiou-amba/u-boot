@@ -125,6 +125,9 @@
 
 #endif
 
+#if defined(CONFIG_BOOTCOMMAND)
+#undef CONFIG_BOOTCOMMAND
+#endif
 #define CONFIG_BOOTCOMMAND							\
     "if test ${AmbaEnv_boot_mode} = nand;"          \
     "then "                                         \

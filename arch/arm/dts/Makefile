@@ -987,7 +987,7 @@ dtb-$(CONFIG_TARGET_DURIAN) += phytium-durian.dtb
 
 dtb-$(CONFIG_TARGET_PRESIDIO_ASIC) += ca-presidio-engboard.dtb
 
-dtb-$(CONFIG_ARCH_AMBARELLA_CV3) += ambarella-cv3.dtb
+##dtb-$(CONFIG_ARCH_AMBARELLA_CV3) += ambarella-cv3.dtb
 
 targets += $(dtb-y)
 

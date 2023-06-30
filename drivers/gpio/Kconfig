@@ -487,4 +487,11 @@ config NX_GPIO
 	  The GPIOs for a device are defined in the device tree with one node
 	  for each bank.
 
+config AMBARELLA_GPIO
+	bool "Ambarella GPIO driver"
+	depends on DM_GPIO && ARCH_AMBARELLA
+	default y
+	help
+	  Say yes here to support Ambarella compatible GPIOs.
+
 endmenu

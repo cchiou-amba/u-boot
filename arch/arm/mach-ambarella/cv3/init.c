@@ -18,7 +18,7 @@ const struct pinmux_config cv3_init_pinmux[] = {
 #endif
 };
 
-#if 0
+#if 1
 void enable_caches(void)
 {
 	/*TODO*/

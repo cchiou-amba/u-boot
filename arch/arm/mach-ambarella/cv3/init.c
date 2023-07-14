@@ -18,12 +18,6 @@ const struct pinmux_config cv3_init_pinmux[] = {
 #endif
 };
 
-#if 1
-void enable_caches(void)
-{
-	/*TODO*/
-}
-#endif
 void plat_f_clk_config(void)
 {
 	/* UART APB divider */

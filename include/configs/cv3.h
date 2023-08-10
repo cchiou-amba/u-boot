@@ -48,6 +48,15 @@
 
 #define EXTRA_ENV_COMMON_SETTINGS                           \
     "serial#=Ambarella CV3\0"                               \
+    "reset_shm=mw.b 0xff0001fdef 0x4;"                      \
+        "mw.q 0xff0001fdf0 0x0404040404040404;"             \
+        "mw.q 0xff0001fdf8 0x0404040404040404;"             \
+        "mw.q 0xff0001fe60 0x1010101010101010;"             \
+        "mw.q 0xff0001fe68 0x1010101010101010;"             \
+        "mw.q 0xff0001fe70 0x1010101010101010;"             \
+        "mw.q 0xff0001fe78 0x1010101010101010\0"            \
+    "print_shm_reg=md.b 0xff0001fdef 0x11;"                 \
+        "md.q 0xff0001fe60 0x4\0"                           \
     "set_usb3_gpio=gpio clear 33\0"                         \
     "init_usb3_gpio=md 0xffe4014000;"                       \
         "mw 0xffe4014004 0x2;"                              \
@@ -71,7 +80,8 @@
     "kernel_comp_addr_r=0x2800000\0"                        \
     "kernel_comp_size=0x2800000\0"                          \
     "fdt_high=0xffffffffffffffff\0"                         \
-    "boot_sd_extlinux=run set_usb3_gpio; run init_sd_gpio;" \
+    "boot_sd_extlinux=run print_shm_reg;"                   \
+    "run set_usb3_gpio; run init_sd_gpio;"                  \
     "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "        \
     "${extlinux_addr_r} /extlinux/extlinux.conf\0"
 

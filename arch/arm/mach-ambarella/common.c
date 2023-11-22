@@ -124,7 +124,7 @@ ulong board_get_usable_ram_top(ulong total_size)
 int plat_f_dram_init(void)
 {
 	const void *fdt = gd->fdt_blob;
-	const void *prop;
+	const unsigned int *prop;
 	int offset;
 
 	offset = fdt_path_offset(fdt, u_boot_cfg);
@@ -133,8 +133,8 @@ int plat_f_dram_init(void)
 
 	prop = fdt_getprop(fdt, offset, "ram-size", NULL);
 	if (prop) {
-		//gd->ram_size = fdt64_to_cpu(*(fdt64_t*)prop);
-		gd->ram_size = DRAM_SIZE;
+		//gd->ram_size = DRAM_SIZE;
+		gd->ram_size = ((unsigned long)fdt32_to_cpu(prop[0]) << 32) | fdt32_to_cpu(prop[1]);
 		mach_mem_map[0].size = gd->ram_size;
 		return 0;
 	}

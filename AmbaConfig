@@ -42,4 +42,7 @@ config CONFIG_UBOOT_DTB_SIZE
 
 endmenu
 
+config CONFIG_UBOOT_DTS_NO_PRIVATE_DEVICE
+	bool "Do not build IAV private device node into uboot DTS"
+
 endif

@@ -26,6 +26,16 @@ config ARCH_AMBARELLA_CV3
 config ARCH_AMBARELLA_CV72
 	def_bool n
 
+config AMBA_BOOT_SECONDARY_CORTEX
+    bool "Ambarella boot secondary cortex"
+    help
+        Ambarella boot secondary cortex
+
+config AMBA_BOOT_SECONDARY_CLUSTER
+    bool "Ambarella boot multi cluster"
+    help
+        Ambarella boot multi cluster
+
 choice
 	prompt "Ambarella board select"
 

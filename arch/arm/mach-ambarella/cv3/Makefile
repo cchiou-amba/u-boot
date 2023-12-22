@@ -3,3 +3,4 @@
 # Copyright (C) 2020 Ambarella International LP
 
 obj-y	+= init.o
+obj-$(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)   += cluster.o

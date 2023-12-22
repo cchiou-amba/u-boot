@@ -10,6 +10,10 @@
 #include <asm/macro.h>
 #include <asm/armv8/mmu.h>
 
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER)
+#include <asm/arch/cortex.h>
+#endif
+
 /*************************************************************************
  *
  * Startup Code (reset vector)
@@ -149,10 +153,15 @@ pie_fixup_done:
 
 	/* Processor specific initialization */
 	bl	lowlevel_init
-
 #if defined(CONFIG_ARMV8_SPIN_TABLE) && !defined(CONFIG_SPL_BUILD)
 	branch_if_master x0, x1, master_cpu
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER)
+    lsl x0, x0, #48
+    cbz x0, master_cpu
+    b   amba_secondary_cortex_wait
+#else
 	b	spin_table_secondary_jump
+#endif
 	/* never return */
 #elif defined(CONFIG_ARMV8_MULTIENTRY)
 	branch_if_master x0, x1, master_cpu
@@ -168,6 +177,29 @@ slave_cpu:
 	br	x0			/* branch to the given address */
 #endif /* CONFIG_ARMV8_MULTIENTRY */
 master_cpu:
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER)
+    mrs	x9, mpidr_el1
+	ubfx	x28, x9, #16, #8		/* check if secondary cluster */
+	cbz	x28, .L998
+
+	ldr	x2, =cluster_stack	/* stack-begin */
+	mov	x1, #CORTEX_CLUSTER_STACK_SIZE
+	madd	x1, x28, x1, x2
+	mov	sp, x1			/* secondary cluster's stack */
+
+    bl	irq_init 
+
+	adr	x2, secondary_cortex_jump
+	mov	x1, #(CORTEX_CORE_MAX_NUM * 8)
+	madd	x0, x28, x1, x2
+
+	ldr	x0, [x0]
+	mov	x1, #(SIZE_1MB * 64)
+	add	x1, x1, x0
+	bl	jump_to_kernel
+	b .				/* never run here */
+.L998:
+#endif
 	bl	_main
 
 #ifdef CONFIG_SYS_RESET_SCTRL

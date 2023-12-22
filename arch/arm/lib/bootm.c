@@ -336,6 +336,11 @@ static void switch_to_el1(void)
 /* Subcommand: GO */
 static void boot_jump_linux(bootm_headers_t *images, int flag)
 {
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER)
+    extern int boot_cluster(int verbose);
+	int rval = boot_cluster(0);	/* boot other clusters than cluster0 */
+#endif
+
 #ifdef CONFIG_ARM64
 	void (*kernel_entry)(void *fdt_addr, void *res0, void *res1,
 			void *res2);

@@ -331,6 +331,130 @@ lr	.req	x30
 .endm
 #endif
 
+.macro	operate_all_cache, op, lvl, type, line, way, set, \
+				wayp, wayv, cp_val, dc_val, tmp
+	dsb	sy
+
+	mov	\lvl, #0		/* lvl = level variable */
+
+/* loop_level */
+1:
+	mrs	\cp_val, clidr_el1	/* read clidr_el1 to check Ctype */
+	lsl	\tmp, \lvl, #1
+	add	\tmp, \tmp, \lvl	/* tmp = lvl << 1 + lvl = lvl * 3 */
+	lsr	\type, \cp_val, \tmp
+	and	\type, \type, #7	/* Cache type */
+	cbz	\type, 5f		/* return if no cache, no need to check upper layer */
+	cmp	\type, #2
+	b.lt	4f			/* skip if icache */
+
+	/*---------- START Specified Level Operation -----------*/
+
+	lsl	\tmp, \lvl, #1
+	msr	csselr_el1, \tmp	/* Selects the current Cache level */
+	isb				/* make sure csselr_el1 has taken effect */
+
+	mrs	\cp_val, ccsidr_el1
+	and	\line, \cp_val, #7
+	add	\line, \line, #4	/* line = log2(cache line size) */
+	lsr	\way, \cp_val, #3
+	and	\way, \way, #0x3ff	/* way = ways - 1 */
+	clz	\wayp, \way		/* wayp = way position in DC ISW/CSW/CISW */
+	sub	\wayp, \wayp, #32	/* wayp = 64 - 32 - A = 32 - log2(ways) */
+	lsr	\set, \cp_val, #13
+	and	\set, \set, #0x7fff	/* set = sets - 1 */
+
+/* loop_set */
+2:
+	mov	\wayv, \way		/* wayv = way variable */
+
+/* loop_way */
+3:
+	lsl	\dc_val, \wayv, \wayp
+	orr	\dc_val, \dc_val, \lvl, lsl #1
+	lsl	\tmp, \set, \line
+	orr	\dc_val, \dc_val, \tmp
+	dc	\op, \dc_val
+
+	subs	\wayv, \wayv, #1
+	b.ge	3b			/* back to loop_way */
+	subs	\set, \set, #1
+	b.ge	2b			/* back to loop_set */
+
+	/*---------- END Specified Level Operation -----------*/
+4:
+	add	\lvl, \lvl, #1		/* increment cache level */
+	b	1b			/* back to loop_level */
+
+5:
+	mov	\tmp, #0
+	msr	csselr_el1, \tmp	/* restore csselr_el1 */
+	dsb	sy
+	isb
+.endm
+
+.macro	invalidate_all_cache, tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, \
+				tmp7, tmp8, tmp9
+	operate_all_cache isw, \tmp0, \tmp1, \tmp2, \tmp3, \tmp4, \
+				 \tmp5, \tmp6, \tmp7, \tmp8, \tmp9
+.endm
+
+.macro	clean_all_cache, tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, \
+				tmp7, tmp8, tmp9
+	operate_all_cache csw, \tmp0, \tmp1, \tmp2, \tmp3, \tmp4, \
+				\tmp5, \tmp6, \tmp7, \tmp8, \tmp9
+.endm
+
+.macro	invcln_all_cache, tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, \
+				tmp7, tmp8, tmp9
+	operate_all_cache cisw, \tmp0, \tmp1, \tmp2, \tmp3, \tmp4, \
+				\tmp5, \tmp6, \tmp7, \tmp8, \tmp9
+.endm
+
+.macro	invalidate_all_tlb
+	armv8_switch_el x1, 1f, 2f, 3f
+1:	tlbi	vmalle1
+	b	0f
+2:	b	.
+3:	tlbi	alle3is
+0:	dsb	ish
+	isb
+.endm
+
+.macro  clean_invalidate_dcache, ops, addr, end, tmp0, tmp1
+
+	mrs	\tmp1, ctr_el0
+	lsr	\tmp1, \tmp1, #16
+	and	\tmp1, \tmp1, #0xf
+	mov	\tmp0, #4
+	lsl	\tmp0, \tmp0, \tmp1		/* cache line size */
+
+	sub	\tmp1, \tmp0, #1
+	bic	\addr, \addr, \tmp1
+1: 	dc	\ops, \addr
+	add	\addr, \addr, \tmp0
+	cmp	\addr, \end
+	b.lo	1b
+	dsb	sy
+.endm
+
+.macro  invalidate_icache, ops, addr, end, tmp0, tmp1
+
+	mrs	\tmp1, ctr_el0
+	and	\tmp1, \tmp1, #0xf
+	mov	\tmp0, #4
+	lsl	\tmp0, \tmp0, \tmp1		/* cache line size */
+
+	sub	\tmp1, \tmp0, #1
+	bic	\addr, \addr, \tmp1
+1: 	ic	\ops, \addr
+	add	\addr, \addr, \tmp0
+	cmp	\addr, \end
+	b.lo	1b
+	dsb	ish
+	isb
+.endm
+
 #endif /* CONFIG_ARM64 */
 
 #endif /* __ASSEMBLY__ */

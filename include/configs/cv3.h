@@ -46,6 +46,22 @@
         "name=rootfs,size=${size_rootfs},uuid=${uuid_gpt_rootfs}\0"
 #endif /* PARTS_DEFAULT */
 
+#ifdef CONFIG_AMBA_BOOT_SECONDARY_CLUSTER
+#define MULTI_CLUSTER_SETTINGS                       \
+    "cluster_1_jump_addr=0x500000000\0"                     \
+    "cluster_2_jump_addr=0x600000000\0"                     \
+    "cluster_3_jump_addr=0x700000000\0"                     \
+    "cluster_1_dtb_addr=0x504000000\0"                      \
+    "cluster_2_dtb_addr=0x604000000\0"                      \
+    "cluster_3_dtb_addr=0x704000000\0"                      \
+    "init_cluster1_image=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_1_jump_addr} /vmlinuz-multi\0" \
+    "init_cluster2_image=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_2_jump_addr} /vmlinuz-multi\0" \
+    "init_cluster3_image=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_3_jump_addr} /vmlinuz-multi\0" \
+    "init_cluster1_dtb=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_1_dtb_addr} /dtb/ambarella/cluster1.dtb\0" \
+    "init_cluster3_dtb=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_3_dtb_addr} /dtb/ambarella/cluster3.dtb\0" \
+    "init_cluster2_dtb=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_2_dtb_addr} /dtb/ambarella/cluster2.dtb\0" 
+#endif
+
 #define EXTRA_ENV_COMMON_SETTINGS                           \
     "serial#=Ambarella CV3\0"                               \
     "reset_shm=mw.b 0xff0001fdef 0x4;"                      \
@@ -79,11 +95,15 @@
     "kernel_addr_r=0x400000\0"                              \
     "kernel_comp_addr_r=0x2800000\0"                        \
     "kernel_comp_size=0x2800000\0"                          \
+    MULTI_CLUSTER_SETTINGS                                  \
     "fdt_high=0xffffffffffffffff\0"                         \
     "boot_sd_extlinux=run print_shm_reg;"                   \
     "run set_usb3_gpio; run init_sd_gpio;"                  \
+    "run init_cluster1_image; run init_cluster2_image;"     \
+    "run init_cluster3_image; run init_cluster1_dtb;"       \
+    "run init_cluster2_dtb; run init_cluster3_dtb;"         \
     "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "        \
-    "${extlinux_addr_r} /extlinux/extlinux.conf\0"
+    "${extlinux_addr_r} /extlinux/extlinux.conf\0"          
 
 
 #ifdef CONFIG_SUPPORT_EMMC_BOOT

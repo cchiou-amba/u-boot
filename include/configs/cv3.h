@@ -59,7 +59,9 @@
     "init_cluster3_image=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_3_jump_addr} /vmlinuz-multi\0" \
     "init_cluster1_dtb=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_1_dtb_addr} /dtb/ambarella/cluster1.dtb\0" \
     "init_cluster3_dtb=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_3_dtb_addr} /dtb/ambarella/cluster3.dtb\0" \
-    "init_cluster2_dtb=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_2_dtb_addr} /dtb/ambarella/cluster2.dtb\0" 
+    "init_cluster2_dtb=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_2_dtb_addr} /dtb/ambarella/cluster2.dtb\0"
+#else
+#define MULTI_CLUSTER_SETTINGS
 #endif
 
 #define EXTRA_ENV_COMMON_SETTINGS                           \

@@ -81,6 +81,10 @@ config TARGET_CV72_DEVKIT
 	help
 		Ambarella International LP
 
+config TARGET_N1_COOPER_MAX
+	bool "Ambarella N1 Cooper Max"
+	select ARCH_AMBARELLA_CV3
+
 endchoice
 
 #source "board/ambarella/s6lm_devkit/Kconfig"
@@ -90,5 +94,6 @@ source "board/ambarella/cv5_devkit/Kconfig"
 source "board/ambarella/cv72_devkit/Kconfig"
 source "board/ambarella/cv3_devkit/Kconfig"
 source "board/ambarella/cv3_bub/Kconfig"
+source "board/ambarella/n1_cooper_max/Kconfig"
 
 endif

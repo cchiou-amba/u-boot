@@ -47,7 +47,7 @@
 #endif /* PARTS_DEFAULT */
 
 #ifdef CONFIG_AMBA_BOOT_SECONDARY_CLUSTER
-#define MULTI_CLUSTER_SETTINGS                       \
+#define MULTI_CLUSTER_SETTINGS                              \
     "cluster_1_jump_addr=0x500000000\0"                     \
     "cluster_2_jump_addr=0x600000000\0"                     \
     "cluster_3_jump_addr=0x700000000\0"                     \
@@ -93,7 +93,7 @@
     "sd_boot_part=1\0"                                      \
     "fdt_addr_r=0x200000\0"                                 \
     "extlinux_addr_r=0x401000\0"                            \
-    "ramdisk_addr_r=0x402000\0"                             \
+    "ramdisk_addr_r=0x8000000\0"                            \
     "kernel_addr_r=0x400000\0"                              \
     "kernel_comp_addr_r=0x2800000\0"                        \
     "kernel_comp_size=0x2800000\0"                          \

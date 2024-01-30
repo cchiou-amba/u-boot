@@ -60,12 +60,13 @@
     "fdt_addr_r=0x1000\0"                \
     "fdt_high=0xffffffffffffffff\0"      \
     "extlinux_addr_r=0x0\0"              \
-    "kernel_addr_r=0x00200000\0"          \
+    "ramdisk_addr_r=0x8000000\0"         \
+    "kernel_addr_r=0x00200000\0"         \
     "kernel_comp_addr_r=0x1000000\0"     \
     "kernel_comp_size=0x1000000\0"       \
     "boot_sd_extlinux=run init_sd_gpio;" \
-        "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "\
-        "${extlinux_addr_r} /extlinux/extlinux.conf\0"
+    "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "\
+    "${extlinux_addr_r} /extlinux/extlinux.conf\0"
 
 
 #ifdef CONFIG_SUPPORT_EMMC_BOOT

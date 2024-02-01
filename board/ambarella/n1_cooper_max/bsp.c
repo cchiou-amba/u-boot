@@ -4,11 +4,13 @@
  */
 
 #include <common.h>
+#include <linux/delay.h>
 #include <env.h>
 #include <dm.h>
 #include <usb.h>
 #include <i2c.h>
 #include <asm/gpio.h>
+#include <asm/arch/misc.h>
 
 int dram_init(void)
 {
@@ -30,6 +32,12 @@ int board_init(void)
 
 	/* SDMMC Power-up */
 	struct udevice *dev;
+
+	gpio_request(144,  "sdmmc0_rst");
+	gpio_direction_output(144, 0);
+	mdelay(10);
+	gpio_direction_output(144, 1);
+	mdelay(10);
 
 	i2c_get_chip_for_busnum(1, 0x0a, 1, &dev);
 	dm_i2c_reg_write(dev, 0x8c, 0x8b);

@@ -8,6 +8,7 @@
 #include <dm.h>
 #include <usb.h>
 #include <i2c.h>
+#include <asm/gpio.h>
 
 int dram_init(void)
 {
@@ -34,6 +35,22 @@ int board_init(void)
 	dm_i2c_reg_write(dev, 0x8c, 0x8b);
 	i2c_get_chip_for_busnum(0, 0x0a, 1, &dev);
 	dm_i2c_reg_write(dev, 0x8c, 0x8b);
+
+	/* PCIE */
+	gpio_request(17,  "pcie0_1_clk");	/* PCIE0_1 CLK */
+	gpio_request(139, "usb_pcie2_clk");	/* USB & PCIE2 CLK */
+	gpio_request(27,  "pcie0_pwr");		/* PCIE0 PWR */
+	gpio_request(26,  "pcie1_pwr");		/* PCIE1 PWR */
+	gpio_request(141, "pcie2_pwr");		/* PCIE2 PWR */
+
+	/* PCIE Slot0&1 */
+	gpio_direction_output(17, 0);
+	gpio_direction_output(27, 1);
+	gpio_direction_output(26, 1);
+
+	/* PCIE Slot2 */
+	gpio_direction_output(139, 0);
+	gpio_direction_output(141, 1);
 
 	return 0;
 }
@@ -62,7 +79,6 @@ static int __init_usb_gadget(void)
 
 int board_late_init(void)
 {
-
 	int rval;
 	/*
 	 * Specify the device-tree for Linux kernel

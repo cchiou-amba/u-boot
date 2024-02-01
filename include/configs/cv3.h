@@ -64,48 +64,56 @@
 #define MULTI_CLUSTER_SETTINGS
 #endif
 
-#define EXTRA_ENV_COMMON_SETTINGS                           \
-    "serial#=Ambarella CV3\0"                               \
-    "reset_shm=mw.b 0xff0001fdef 0x4;"                      \
-        "mw.q 0xff0001fdf0 0x0404040404040404;"             \
-        "mw.q 0xff0001fdf8 0x0404040404040404;"             \
-        "mw.q 0xff0001fe60 0x1010101010101010;"             \
-        "mw.q 0xff0001fe68 0x1010101010101010;"             \
-        "mw.q 0xff0001fe70 0x1010101010101010;"             \
-        "mw.q 0xff0001fe78 0x1010101010101010\0"            \
-    "print_shm_reg=md.b 0xff0001fdef 0x11;"                 \
-        "md.q 0xff0001fe60 0x4\0"                           \
-    "set_usb3_gpio=gpio clear 33\0"                         \
-    "init_usb3_gpio=md 0xffe4014000;"                       \
-        "mw 0xffe4014004 0x2;"                              \
-        "mw 0xffe4014028 0x2;"                              \
-        "mw 0xffe4014000 0x0;"                              \
-        "mw 0xffe401402C 0x1;"                              \
-        "md 0xffe4014000\0"                                 \
-    "init_sd_gpio=md 0xffe4017000;"                         \
-        "mw 0xffe4017004 0x10000;"                          \
-        "mw 0xffe4017028 0x10000;"                          \
-        "mw 0xffe4017000 0x10000;"                          \
-        "mw 0xffe401702C 0xffffffff;"                       \
-        "mmc rescan;"                                       \
-        "mmc dev ${sd_dev_num}\0"                           \
-    "sd_dev_num=0\0"                                        \
-    "sd_boot_part=1\0"                                      \
-    "fdt_addr_r=0x200000\0"                                 \
-    "extlinux_addr_r=0x401000\0"                            \
-    "ramdisk_addr_r=0x8000000\0"                            \
-    "kernel_addr_r=0x400000\0"                              \
-    "kernel_comp_addr_r=0x2800000\0"                        \
-    "kernel_comp_size=0x2800000\0"                          \
-    MULTI_CLUSTER_SETTINGS                                  \
-    "fdt_high=0xffffffffffffffff\0"                         \
-    "boot_sd_extlinux=run print_shm_reg;"                   \
-    "run set_usb3_gpio; run init_sd_gpio;"                  \
-    "run init_cluster1_image; run init_cluster2_image;"     \
-    "run init_cluster3_image; run init_cluster1_dtb;"       \
-    "run init_cluster2_dtb; run init_cluster3_dtb;"         \
-    "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "        \
-    "${extlinux_addr_r} /extlinux/extlinux.conf\0"          
+#define EXTRA_ENV_COMMON_SETTINGS                               \
+    "serial#=Ambarella CV3\0"                                   \
+    "reset_shm=mw.b 0xff0001fdef 0x4;"                          \
+        "mw.q 0xff0001fdf0 0x0404040404040404;"                 \
+        "mw.q 0xff0001fdf8 0x0404040404040404;"                 \
+        "mw.q 0xff0001fe60 0x1010101010101010;"                 \
+        "mw.q 0xff0001fe68 0x1010101010101010;"                 \
+        "mw.q 0xff0001fe70 0x1010101010101010;"                 \
+        "mw.q 0xff0001fe78 0x1010101010101010\0"                \
+    "print_shm_reg=md.b 0xff0001fdef 0x11;"                     \
+        "md.q 0xff0001fe60 0x4\0"                               \
+    "set_usb3_gpio=gpio clear 33\0"                             \
+    "init_usb3_gpio=md 0xffe4014000;"                           \
+        "mw 0xffe4014004 0x2;"                                  \
+        "mw 0xffe4014028 0x2;"                                  \
+        "mw 0xffe4014000 0x0;"                                  \
+        "mw 0xffe401402C 0x1;"                                  \
+        "md 0xffe4014000\0"                                     \
+    "init_sd_gpio=md 0xffe4017000;"                             \
+        "mw 0xffe4017004 0x10000;"                              \
+        "mw 0xffe4017028 0x10000;"                              \
+        "mw 0xffe4017000 0x10000;"                              \
+        "mw 0xffe401702C 0xffffffff;"                           \
+        "mmc rescan;"                                           \
+        "mmc dev ${sd_dev_num}\0"                               \
+    "sd_dev_num=0\0"                                            \
+    "sd_boot_part=1\0"                                          \
+    "iso_dev_num=0\0"                                           \
+    "iso_boot_part=1\0"                                         \
+    "fdt_addr_r=0x200000\0"                                     \
+    "extlinux_addr_r=0x401000\0"                                \
+    "ramdisk_addr_r=0x8000000\0"                                \
+    "kernel_addr_r=0x400000\0"                                  \
+    "kernel_comp_addr_r=0x2800000\0"                            \
+    "kernel_comp_size=0x2800000\0"                              \
+    MULTI_CLUSTER_SETTINGS                                      \
+    "fdt_high=0xffffffffffffffff\0"                             \
+    "sd_extlinux_file /extlinux/extlinux.conf\0"                \
+    "iso_extlinux_file /EFI/BOOT/live/extlinux/extlinux.conf\0" \
+    "boot_iso_extlinux=run print_shm_reg;"                      \
+    "run set_usb3_gpio; run init_sd_gpio;"                      \
+    "sysboot mmc ${iso_dev_num}:${iso_boot_part} any "          \
+    "${extlinux_addr_r} ${iso_extlinux_file}\0"                 \
+    "boot_sd_extlinux=run print_shm_reg;"                       \
+    "run set_usb3_gpio; run init_sd_gpio;"                      \
+    "run init_cluster1_image; run init_cluster2_image;"         \
+    "run init_cluster3_image; run init_cluster1_dtb;"           \
+    "run init_cluster2_dtb; run init_cluster3_dtb;"             \
+    "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "            \
+    "${extlinux_addr_r} ${sd_extlinux_file}\0"
 
 
 #ifdef CONFIG_SUPPORT_EMMC_BOOT
@@ -130,7 +138,7 @@
         "mmc dev ${mmc_dev_num};"                   \
         "sysboot mmc ${mmc_dev_num}:${mmc_boot_part} any "\
         "${extlinux_addr_r} /extlinux/extlinux.conf\0"    \
-    "boot_target=sd_extlinux emmc_extlinux emmc\0"
+    "boot_target=iso_extlinux sd_extlinux emmc_extlinux emmc\0"
 
 #elif CONFIG_AMBARELLA_SPINOR
 #define CONFIG_EXTRA_ENV_SETTINGS						\
@@ -142,7 +150,7 @@
 	"mtd read dtb ${fdt_addr_r}; "			\
 	"booti ${kernel_addr_r} - ${fdt_addr_r} \0"                                   \
     EXTRA_ENV_COMMON_SETTINGS \
-    "boot_target=sd_extlinux spinor nand\0"
+    "boot_target=iso_extlinux sd_extlinux spinor\0"
 
 #else
 #define CONFIG_EXTRA_ENV_SETTINGS						\
@@ -154,7 +162,7 @@
 		"nand read ${kernel_addr} kernel; "				\
 		"booti ${kernel_addr} - ${fdtaddr} \0"                                   \
     EXTRA_ENV_COMMON_SETTINGS \
-    "boot_target=spinor sd_extlinux nand\0"
+    "boot_target=spinor sd_extlinux\0"
 
 #endif
 

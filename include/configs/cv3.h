@@ -101,8 +101,8 @@
     "kernel_comp_size=0x2800000\0"                              \
     MULTI_CLUSTER_SETTINGS                                      \
     "fdt_high=0xffffffffffffffff\0"                             \
-    "sd_extlinux_file /extlinux/extlinux.conf\0"                \
-    "iso_extlinux_file /EFI/BOOT/live/extlinux/extlinux.conf\0" \
+    "sd_extlinux_file=/extlinux/extlinux.conf\0"                \
+    "iso_extlinux_file=/EFI/BOOT/live/extlinux/extlinux.conf\0" \
     "boot_iso_extlinux=run print_shm_reg;"                      \
     "run set_usb3_gpio; run init_sd_gpio;"                      \
     "sysboot mmc ${iso_dev_num}:${iso_boot_part} any "          \

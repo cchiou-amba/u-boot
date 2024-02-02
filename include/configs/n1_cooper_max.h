@@ -88,9 +88,9 @@
     "kernel_comp_addr_r=0x2800000\0"                            \
     "kernel_comp_size=0x2800000\0"                              \
     "fdt_high=0xffffffffffffffff\0"                             \
-    "sd_extlinux_file /extlinux/extlinux.conf\0"                \
-    "iso_extlinux_file /EFI/BOOT/live/extlinux/extlinux.conf\0" \
-    "emmc_extlinux_file /extlinux/extlinux.conf\0"              \
+    "sd_extlinux_file=/extlinux/extlinux.conf\0"                \
+    "iso_extlinux_file=/EFI/BOOT/live/extlinux/extlinux.conf\0" \
+    "emmc_extlinux_file=/extlinux/extlinux.conf\0"              \
     "boot_sd_extlinux=run print_shm_reg;"                       \
     "mmc rescan;"                                               \
     "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "            \

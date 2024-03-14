@@ -54,12 +54,12 @@
     "cluster_1_dtb_addr=0x504000000\0"                      \
     "cluster_2_dtb_addr=0x604000000\0"                      \
     "cluster_3_dtb_addr=0x704000000\0"                      \
-    "init_cluster1_image=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_1_jump_addr} /vmlinuz-multi\0" \
-    "init_cluster2_image=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_2_jump_addr} /vmlinuz-multi\0" \
-    "init_cluster3_image=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_3_jump_addr} /vmlinuz-multi\0" \
-    "init_cluster1_dtb=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_1_dtb_addr} /dtb/ambarella/cluster1.dtb\0" \
-    "init_cluster3_dtb=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_3_dtb_addr} /dtb/ambarella/cluster3.dtb\0" \
-    "init_cluster2_dtb=ext4load mmc ${mmc_dev_num}:${mmc_boot_part} ${cluster_2_dtb_addr} /dtb/ambarella/cluster2.dtb\0"
+    "init_cluster1_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_jump_addr} /vmlinuz-multi\0" \
+    "init_cluster2_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_2_jump_addr} /vmlinuz-multi\0" \
+    "init_cluster3_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_3_jump_addr} /vmlinuz-multi\0" \
+    "init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /dtb/ambarella/cluster1.dtb\0" \
+    "init_cluster3_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_3_dtb_addr} /dtb/ambarella/cluster3.dtb\0" \
+    "init_cluster2_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_2_dtb_addr} /dtb/ambarella/cluster2.dtb\0"
 #else
 #define MULTI_CLUSTER_SETTINGS
 #endif
@@ -87,6 +87,7 @@
     "kernel_addr_r=0x400000\0"                                  \
     "kernel_comp_addr_r=0x2800000\0"                            \
     "kernel_comp_size=0x2800000\0"                              \
+    MULTI_CLUSTER_SETTINGS                                      \
     "fdt_high=0xffffffffffffffff\0"                             \
     "sd_extlinux_file=/extlinux/extlinux.conf\0"                \
     "iso_extlinux_file=/EFI/BOOT/live/extlinux/extlinux.conf\0" \
@@ -101,6 +102,9 @@
     "${extlinux_addr_r} ${iso_extlinux_file}\0"                 \
     "boot_emmc_extlinux=run print_shm_reg;"                     \
     "mmc rescan;"                                               \
+    "run init_cluster1_image; run init_cluster2_image;"         \
+    "run init_cluster3_image; run init_cluster1_dtb;"           \
+    "run init_cluster2_dtb; run init_cluster3_dtb;"             \
     "sysboot mmc ${emmc_dev_num}:${emmc_boot_part} any "        \
     "${extlinux_addr_r} ${emmc_extlinux_file}\0"
 

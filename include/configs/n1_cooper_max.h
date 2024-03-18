@@ -48,12 +48,12 @@
 
 #ifdef CONFIG_AMBA_BOOT_SECONDARY_CLUSTER
 #define MULTI_CLUSTER_SETTINGS                              \
-    "cluster_1_jump_addr=0x500000000\0"                     \
-    "cluster_2_jump_addr=0x600000000\0"                     \
-    "cluster_3_jump_addr=0x700000000\0"                     \
-    "cluster_1_dtb_addr=0x504000000\0"                      \
-    "cluster_2_dtb_addr=0x604000000\0"                      \
-    "cluster_3_dtb_addr=0x704000000\0"                      \
+    "cluster_1_jump_addr=0xD00000000\0"                     \
+    "cluster_2_jump_addr=0xE00000000\0"                     \
+    "cluster_3_jump_addr=0xF00000000\0"                     \
+    "cluster_1_dtb_addr=0xD04000000\0"                      \
+    "cluster_2_dtb_addr=0xE04000000\0"                      \
+    "cluster_3_dtb_addr=0xF04000000\0"                      \
     "init_cluster1_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_jump_addr} /vmlinuz-multi\0" \
     "init_cluster2_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_2_jump_addr} /vmlinuz-multi\0" \
     "init_cluster3_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_3_jump_addr} /vmlinuz-multi\0" \

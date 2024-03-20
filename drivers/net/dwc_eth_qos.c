@@ -454,7 +454,7 @@ static int eqos_mdio_wait_idle(struct eqos_priv *eqos)
 				 1000000, true);
 }
 
-static int eqos_mdio_read(struct mii_dev *bus, int mdio_addr, int mdio_devad,
+static int __maybe_unused eqos_mdio_read(struct mii_dev *bus, int mdio_addr, int mdio_devad,
 			  int mdio_reg)
 {
 	struct eqos_priv *eqos = bus->priv;
@@ -498,7 +498,7 @@ static int eqos_mdio_read(struct mii_dev *bus, int mdio_addr, int mdio_devad,
 	return val;
 }
 
-static int eqos_mdio_write(struct mii_dev *bus, int mdio_addr, int mdio_devad,
+static int __maybe_unused eqos_mdio_write(struct mii_dev *bus, int mdio_addr, int mdio_devad,
 			   int mdio_reg, u16 mdio_val)
 {
 	struct eqos_priv *eqos = bus->priv;
@@ -537,6 +537,76 @@ static int eqos_mdio_write(struct mii_dev *bus, int mdio_addr, int mdio_devad,
 	}
 
 	return 0;
+}
+
+#define CONFIG_MDIO_TIMEOUT      (3 * CONFIG_SYS_HZ)
+#define MDIO_ADDR_REG(n) (0xffe003e0a4 + n * 4)
+#define READ_MDIO_DATA_REG(n) (readl(0xffe003e0a0) >> (n * 16))
+#define WRITE_MDIO_DATA_REG(v, n) (writel(v << (n * 16),  0xffe003e0a0))
+#define ETH_MAC_GMII_ADDR_PA(x)		(((x) & 0x1f) << 21)
+#define ETH_MAC_GMII_ADDR_GR(x)		(((x) & 0x1f) << 16)
+#define ETH_MAC_GMII_CLKDIV(x) 		(((x) & 0xf) << 8)
+#define ETH_MAC_GMII_CMD_READ		(3 << 2)
+#define ETH_MAC_GMII_CMD_WRITE		(1 << 2)
+#define ETH_MAC_GMII_CMD_BUSY		(1 << 0)
+
+static int amba_mdio_read(struct mii_dev *bus, int mdio_addr, int mdio_devad,
+			  int mdio_reg)
+{
+	unsigned int val;
+	ulong start;
+	int timeout = CONFIG_MDIO_TIMEOUT;
+	int n = ((struct eqos_priv *)(bus->priv))->dev->seq;
+
+	val = ETH_MAC_GMII_ADDR_PA(mdio_addr) | ETH_MAC_GMII_ADDR_GR(mdio_reg);
+	val |= ETH_MAC_GMII_CLKDIV((5 - 1));
+	val |= ETH_MAC_GMII_CMD_READ;	/* Read enable */
+	val |= ETH_MAC_GMII_CMD_BUSY;	/* busy */
+
+	debug("%s addr=0x%x, devad 0x%x, reg=0x%x \n", __func__, mdio_addr, mdio_devad, mdio_reg);
+	writel(val, MDIO_ADDR_REG(n));
+	start = get_timer(0);
+	while(get_timer(start) < timeout) {
+		if(!(readl(MDIO_ADDR_REG(n)) & ETH_MAC_GMII_CMD_BUSY)) {
+			val =  READ_MDIO_DATA_REG(n);
+			debug("%s addr 0x%x devad 0x%x reg 0x%x regval 0x%x \n", __func__,
+					mdio_addr, mdio_devad, mdio_reg, val);
+
+			return val;
+		}
+	}
+
+	return -ETIMEDOUT;;
+}
+
+static int amba_mdio_write(struct mii_dev *bus, int mdio_addr, int mdio_devad,
+			   int mdio_reg, u16 mdio_val)
+{
+	unsigned int val;
+	ulong start;
+	int ret = -ETIMEDOUT, timeout = CONFIG_MDIO_TIMEOUT;
+	int n = ((struct eqos_priv *)(bus->priv))->dev->seq;
+
+	debug("%s addr=%x, reg=%d, val=%x):\n", __func__, mdio_addr, mdio_reg, mdio_val);
+	val = ETH_MAC_GMII_ADDR_PA(mdio_addr) | ETH_MAC_GMII_ADDR_GR(mdio_reg);
+	val |= ETH_MAC_GMII_CLKDIV((5 - 1));
+	val |= ETH_MAC_GMII_CMD_WRITE;	/* Write enable */
+	val |= ETH_MAC_GMII_CMD_BUSY;	/* busy */
+
+	WRITE_MDIO_DATA_REG(mdio_val, n);
+	writel(val, MDIO_ADDR_REG(n));
+
+	start = get_timer(0);
+	while(get_timer(start) < timeout) {
+		val = readl(MDIO_ADDR_REG(n));
+		if(!(val & ETH_MAC_GMII_CMD_BUSY)) {
+			ret = 0;
+			break;
+		}
+		udelay(10);
+	}
+
+	return ret;
 }
 
 static int eqos_start_clks_tegra186(struct udevice *dev)
@@ -658,6 +728,49 @@ static int eqos_start_clks_imx(struct udevice *dev)
 	return 0;
 }
 
+static int eqos_start_clks_ambarella(struct udevice *dev)
+{
+	int alias_id;
+	int node = dev_of_offset(dev);
+	const char *prop;
+
+	//alias_id = of_alias_get_id(node, "ethernet");
+	alias_id = dev->seq;
+	prop = fdt_getprop(gd->fdt_blob, node, "amb,tx-clk-invert", NULL);
+	if (prop) {
+		if (alias_id == 0)
+			setbits_32(0xffe003e060, 1 << 31);
+		else if (alias_id == 1)
+			setbits_32(0xffe003e060, 1 << 28);
+		else if (alias_id == 2)
+			setbits_32(0xffe003e270, 1 << 13);
+		else if (alias_id == 3)
+			setbits_32(0xffe003e270, 1 << 6);
+		else
+			debug("Unsupport ethernt%d \n", alias_id);
+	}
+
+	prop = fdt_getprop(gd->fdt_blob, node, "amb,rx-clk-invert", NULL);
+	if (prop) {
+		if (alias_id == 0)
+			setbits_32(0xffe003e060, 1 << 0);
+		else if (alias_id == 1)
+			setbits_32(0xffe003e060, 1 << 11);
+		else if (alias_id == 2)
+			setbits_32(0xffe003e270, 1 << 8);
+		else if (alias_id == 3)
+			setbits_32(0xffe003e270, 1 << 1);
+		else
+			debug("Unsupport ethernt%d \n", alias_id);
+	}
+
+	prop = fdt_getprop(gd->fdt_blob, node, "amb,2nd-ref-clk-50mhz", NULL);
+	if (prop)
+		setbits_32(0xffe003e060, 1 << 23);
+
+	return 0;
+}
+
 static void eqos_stop_clks_tegra186(struct udevice *dev)
 {
 #ifdef CONFIG_CLK
@@ -693,6 +806,11 @@ static void eqos_stop_clks_stm32(struct udevice *dev)
 }
 
 static void eqos_stop_clks_imx(struct udevice *dev)
+{
+	/* empty */
+}
+
+static void eqos_stop_clks_ambarella(struct udevice *dev)
 {
 	/* empty */
 }
@@ -769,6 +887,11 @@ static int eqos_start_resets_imx(struct udevice *dev)
 	return 0;
 }
 
+static int eqos_start_resets_ambarella(struct udevice *dev)
+{
+	return 0;
+}
+
 static int eqos_stop_resets_tegra186(struct udevice *dev)
 {
 	struct eqos_priv *eqos = dev_get_priv(dev);
@@ -797,6 +920,11 @@ static int eqos_stop_resets_stm32(struct udevice *dev)
 }
 
 static int eqos_stop_resets_imx(struct udevice *dev)
+{
+	return 0;
+}
+
+static int eqos_stop_resets_ambarella(struct udevice *dev)
 {
 	return 0;
 }
@@ -889,6 +1017,11 @@ static ulong eqos_get_tick_clk_rate_imx(struct udevice *dev)
 	return imx_get_eqos_csr_clk();
 }
 
+static ulong eqos_get_tick_clk_rate_ambarella(struct udevice *dev)
+{
+	return 0;
+}
+
 static int eqos_calibrate_pads_stm32(struct udevice *dev)
 {
 	return 0;
@@ -899,12 +1032,22 @@ static int eqos_calibrate_pads_imx(struct udevice *dev)
 	return 0;
 }
 
+static int eqos_calibrate_pads_ambarella(struct udevice *dev)
+{
+	return 0;
+}
+
 static int eqos_disable_calibration_stm32(struct udevice *dev)
 {
 	return 0;
 }
 
 static int eqos_disable_calibration_imx(struct udevice *dev)
+{
+	return 0;
+}
+
+static int eqos_disable_calibration_ambarella(struct udevice *dev)
 {
 	return 0;
 }
@@ -1038,6 +1181,40 @@ static int eqos_set_tx_clk_speed_imx(struct udevice *dev)
 		pr_err("imx (tx_clk, %lu) failed: %d", rate, ret);
 		return ret;
 	}
+
+	return 0;
+}
+
+static int eqos_set_tx_clk_speed_ambarella(struct udevice *dev)
+{
+#if 0
+	struct eqos_priv *eqos = dev_get_priv(dev);
+	ulong rate;
+	int ret;
+
+	debug("%s(dev=%p):\n", __func__, dev);
+
+	switch (eqos->phy->speed) {
+	case SPEED_1000:
+		rate = 125 * 1000 * 1000;
+		break;
+	case SPEED_100:
+		rate = 25 * 1000 * 1000;
+		break;
+	case SPEED_10:
+		rate = 2.5 * 1000 * 1000;
+		break;
+	default:
+		pr_err("invalid speed %d", eqos->phy->speed);
+		return -EINVAL;
+	}
+
+	ret = imx_eqos_txclk_set_rate(rate);
+	if (ret < 0) {
+		pr_err("imx (tx_clk, %lu) failed: %d", rate, ret);
+		return ret;
+	}
+#endif
 
 	return 0;
 }
@@ -1939,6 +2116,39 @@ static phy_interface_t eqos_get_interface_imx(struct udevice *dev)
 	return interface;
 }
 
+static int eqos_probe_resources_ambarella(struct udevice *dev)
+{
+	struct eqos_priv *eqos = dev_get_priv(dev);
+	phy_interface_t interface;
+
+	debug("%s(dev=%p):\n", __func__, dev);
+
+	interface = eqos->config->interface(dev);
+
+	if (interface == PHY_INTERFACE_MODE_NONE) {
+		pr_err("Invalid PHY interface\n");
+		return -EINVAL;
+	}
+
+	debug("%s: OK\n", __func__);
+	return 0;
+}
+
+static phy_interface_t eqos_get_interface_ambarella(struct udevice *dev)
+{
+	const char *phy_mode;
+	phy_interface_t interface = PHY_INTERFACE_MODE_NONE;
+
+	debug("%s(dev=%p):\n", __func__, dev);
+
+	phy_mode = fdt_getprop(gd->fdt_blob, dev_of_offset(dev), "phy-mode",
+			       NULL);
+	if (phy_mode)
+		interface = phy_get_interface_by_name(phy_mode);
+
+	return interface;
+}
+
 static int eqos_remove_resources_tegra186(struct udevice *dev)
 {
 	struct eqos_priv *eqos = dev_get_priv(dev);
@@ -1961,8 +2171,8 @@ static int eqos_remove_resources_tegra186(struct udevice *dev)
 
 static int eqos_remove_resources_stm32(struct udevice *dev)
 {
-#ifdef CONFIG_CLK
 	struct eqos_priv *eqos = dev_get_priv(dev);
+#ifdef CONFIG_CLK
 
 	debug("%s(dev=%p):\n", __func__, dev);
 
@@ -1981,6 +2191,11 @@ static int eqos_remove_resources_stm32(struct udevice *dev)
 }
 
 static int eqos_remove_resources_imx(struct udevice *dev)
+{
+	return 0;
+}
+
+static int eqos_remove_resources_ambarella(struct udevice *dev)
 {
 	return 0;
 }
@@ -2027,8 +2242,15 @@ static int eqos_probe(struct udevice *dev)
 			ret = -ENOMEM;
 			goto err_remove_resources_tegra;
 		}
+#if 0
+		/* if use controller's pins, eqos_mdio can be used */
 		eqos->mii->read = eqos_mdio_read;
 		eqos->mii->write = eqos_mdio_write;
+#else
+		/* if use ahb mdio pins,  amba_mdio should be used */
+		eqos->mii->read = amba_mdio_read;
+		eqos->mii->write = amba_mdio_write;
+#endif
 		eqos->mii->priv = eqos;
 		strcpy(eqos->mii->name, dev->name);
 
@@ -2164,6 +2386,34 @@ struct eqos_config __maybe_unused eqos_imx_config = {
 	.ops = &eqos_imx_ops
 };
 
+static struct eqos_ops eqos_ambarella_ops = {
+	.eqos_inval_desc = eqos_inval_desc_generic,
+	.eqos_flush_desc = eqos_flush_desc_generic,
+	.eqos_inval_buffer = eqos_inval_buffer_generic,
+	.eqos_flush_buffer = eqos_flush_buffer_generic,
+	.eqos_probe_resources = eqos_probe_resources_ambarella,
+	.eqos_remove_resources = eqos_remove_resources_ambarella,
+	.eqos_stop_resets = eqos_stop_resets_ambarella,
+	.eqos_start_resets = eqos_start_resets_ambarella,
+	.eqos_stop_clks = eqos_stop_clks_ambarella,
+	.eqos_start_clks = eqos_start_clks_ambarella,
+	.eqos_calibrate_pads = eqos_calibrate_pads_ambarella,
+	.eqos_disable_calibration = eqos_disable_calibration_ambarella,
+	.eqos_set_tx_clk_speed = eqos_set_tx_clk_speed_ambarella,
+	.eqos_get_tick_clk_rate = eqos_get_tick_clk_rate_ambarella
+};
+
+struct eqos_config __maybe_unused eqos_ambarella_config = {
+	.reg_access_always_ok = false,
+	.mdio_wait = 10000,
+	.swr_wait = 50,
+	.config_mac = EQOS_MAC_RXQ_CTRL0_RXQ0EN_ENABLED_DCB,
+	.config_mac_mdio = EQOS_MAC_MDIO_ADDRESS_CR_250_300,
+	.interface = eqos_get_interface_ambarella,
+	.ops = &eqos_ambarella_ops
+};
+
+
 static const struct udevice_id eqos_ids[] = {
 #if IS_ENABLED(CONFIG_DWC_ETH_QOS_TEGRA186)
 	{
@@ -2182,6 +2432,12 @@ static const struct udevice_id eqos_ids[] = {
 		.compatible = "fsl,imx-eqos",
 		.data = (ulong)&eqos_imx_config
 	},
+#endif
+#if IS_ENABLED(CONFIG_DWC_ETH_QOS_AMBARELLA)
+		{
+			.compatible = "ambarella-dwmac-eqos",
+			.data = (ulong)&eqos_ambarella_config
+		},
 #endif
 
 	{ }

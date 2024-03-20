@@ -67,16 +67,24 @@ static const char *ambarella_pinctrl_get_pin_name(struct udevice *dev,
 
 static int ambarella_pinctrl_get_pins_count(struct udevice *dev)
 {
-	int ret, node, count;
+	ofnode node;
+	int ret, count;
 	struct fdtdec_phandle_args args;
 
-	node = fdt_node_offset_by_compatible(gd->fdt_blob, -1, "ambarella,gpio");
-	if (node == -FDT_ERR_NOTFOUND) {
-		printf("not found ambarella,gpio node, please add it\n");
-		return 0;
+	ret = -1;
+	dev_for_each_subnode(node, dev) {
+		if (ofnode_read_bool(node, "gpio-controller")) {
+			ret = 0;
+			break;
+		}
 	}
 
-	ret = fdtdec_parse_phandle_with_args(gd->fdt_blob, node, "gpio-ranges",
+	if (ret) {
+		printf("not found gpio-controller, please add it\n");
+		return ret;
+	}
+
+	ret = fdtdec_parse_phandle_with_args(gd->fdt_blob, ofnode_to_offset(node), "gpio-ranges",
 					     NULL, 3, 0, &args);
 	count = args.args[2];
 	debug("%s %d\n", __func__, count);

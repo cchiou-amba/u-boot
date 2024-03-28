@@ -60,9 +60,13 @@ int board_init(void)
 	gpio_direction_output(139, 0);
 	gpio_direction_output(141, 1);
 
-	/* VIN & LT9611 */
-	gpio_request(49, "lt9611");
+	/* IDC1 & LT9611 */
+	gpio_request(49, "lt9611_pwr");
 	gpio_direction_output(49, 1);
+
+	/* USB */
+	gpio_request(20, "usb_id");
+	gpio_direction_output(20, 1);
 
 	return 0;
 }

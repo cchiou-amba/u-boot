@@ -13,6 +13,9 @@
 #include <linux/libfdt.h>
 
 static const char *u_boot_cfg = "/u-boot_cfg";
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
+static const char *clusters_mem = "/memory";
+#endif
 
 static struct mm_region mach_mem_map[] = {
 	{
@@ -101,7 +104,72 @@ static void env_set_cfg_info(void)
 	prop = fdt_getprop(fdt, offset, "mtdparts", NULL);
 	if (prop)
 		env_set("mtdparts", prop);
+
 }
+
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
+static void env_set_clusters_mem_info(void){
+	const void *fdt = gd->fdt_blob;
+	const unsigned int *tmp;
+	int offset;
+
+	offset = fdt_path_offset(fdt, clusters_mem);
+	if (offset < 0) {
+		return ;
+	}
+
+	tmp = fdt_getprop(fdt, offset, "cluster_3", NULL);
+	if (tmp){
+		if (env_get("cluster_3_jump_addr") == NULL ){
+			unsigned long cluster3_kernel_addr = ((unsigned long)fdt32_to_cpu(tmp[0]) << 32) | fdt32_to_cpu(tmp[1]);
+			unsigned long cluster3_ram_size = ((unsigned long)fdt32_to_cpu(tmp[2]) << 32) | fdt32_to_cpu(tmp[3]);
+			printf("set cluster3 ram...ram start is 0x%lx, size is 0x%lx.\n", cluster3_kernel_addr, cluster3_ram_size);
+			char kernel_addr_str[11];
+		    sprintf(kernel_addr_str, "0x%lx", cluster3_kernel_addr);
+			env_set("cluster_3_jump_addr", kernel_addr_str);
+
+			unsigned long addr = cluster3_kernel_addr + 0x4000000;
+			char dtb_addr[11];
+			sprintf(dtb_addr, "0x%lx", addr);
+			env_set("cluster_3_dtb_addr", dtb_addr);
+		}
+	}
+
+	tmp = fdt_getprop(fdt, offset, "cluster_2", NULL);
+	if (tmp){
+		if (env_get("cluster_2_jump_addr") == NULL ){
+			unsigned long cluster2_kernel_addr = ((unsigned long)fdt32_to_cpu(tmp[0]) << 32) | fdt32_to_cpu(tmp[1]);
+			unsigned long cluster2_ram_size = ((unsigned long)fdt32_to_cpu(tmp[2]) << 32) | fdt32_to_cpu(tmp[3]);
+			printf("set cluster2 ram...ram start is 0x%lx, size is 0x%lx.\n", cluster2_kernel_addr, cluster2_ram_size);
+			char kernel_addr_str[11];
+			sprintf(kernel_addr_str, "0x%lx", cluster2_kernel_addr);
+			env_set("cluster_2_jump_addr", kernel_addr_str);
+
+			unsigned long addr = cluster2_kernel_addr + 0x4000000;
+			char dtb_addr[11];
+			sprintf(dtb_addr, "0x%lx", addr);
+			env_set("cluster_2_dtb_addr", dtb_addr);
+		}
+	}
+
+	tmp = fdt_getprop(fdt, offset, "cluster_1", NULL);
+	if (tmp){
+		if (env_get("cluster_1_jump_addr") == NULL ){
+			unsigned long cluster1_kernel_addr = ((unsigned long)fdt32_to_cpu(tmp[0]) << 32) | fdt32_to_cpu(tmp[1]);
+			unsigned long cluster1_ram_size = ((unsigned long)fdt32_to_cpu(tmp[2]) << 32) | fdt32_to_cpu(tmp[3]);
+			printf("set cluster1 ram...ram start is 0x%lx, size is 0x%lx.\n", cluster1_kernel_addr, cluster1_ram_size);
+			char kernel_addr_str[11];
+			sprintf(kernel_addr_str, "0x%lx", cluster1_kernel_addr);
+			env_set("cluster_1_jump_addr", kernel_addr_str);
+
+			unsigned long addr = cluster1_kernel_addr + 0x4000000;
+			char dtb_addr[11];
+			sprintf(dtb_addr, "0x%lx", addr);
+			env_set("cluster_1_dtb_addr", dtb_addr);
+		}
+	}
+}
+#endif
 
 ulong board_get_usable_ram_top(ulong total_size)
 {
@@ -158,6 +226,9 @@ void plat_r_board_late_init(void)
 {
 	env_set_poc_info();
 	env_set_cfg_info();
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
+	env_set_clusters_mem_info();
+#endif
 }
 
 

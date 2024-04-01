@@ -50,6 +50,23 @@ int arch_fixup_fdt(void *blob)
 #endif
 	}
 
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
+	const char *clusters_mem = "/memory";
+	const unsigned int *prop;
+	int offset;
+
+	offset = fdt_path_offset(blob, clusters_mem);
+	if (offset < 0)
+		goto exit;
+
+	prop = fdt_getprop(blob, offset, "reg", NULL);
+	if (prop) {
+		start[0] = ((unsigned long)fdt32_to_cpu(prop[0]) << 32) | fdt32_to_cpu(prop[1]);
+		size[0] = ((unsigned long)fdt32_to_cpu(prop[2]) << 32) | fdt32_to_cpu(prop[3]);
+	}
+exit:
+#endif
+
 #ifdef CONFIG_OF_LIBFDT
 	ret = fdt_fixup_memory_banks(blob, start, size, CONFIG_NR_DRAM_BANKS);
 	if (ret)

@@ -221,43 +221,43 @@ static int fdt_update_cluster_tags(u32 cluster_id, uintptr_t jump_addr,
 		}
 	}
 
+	kernelp = jump_addr & (~SIZE_1MB_MASK);
+
 	cmdline = fdt_getprop(fdt, offset, "bootargs", NULL);
 	if (cmdline) {
 		char *str, *s = "mem=";
 
 		// str = strnstr(cmdline, s, strlen(cmdline));
-        str = strstr(cmdline, s);
-		if (str)
+		str = strstr(cmdline, s);
+		if (str){
 			kernels = memparse(str + strlen(s), NULL);
-	}
+			if (verbose) {
+				printf("kernelp: 0x%p kernels: 0x%08x\n", kernelp, kernels);
+				printf("dtbp: 0x%p\n", (uintptr_t)fdt);
+				printf("initrd2_start: 0x%p initrd2_size: 0x%08x\n", initrd2_start, initrd2_size);
+			}
 
-	kernelp = jump_addr & (~SIZE_1MB_MASK);
+			BUG_ON(kernelp < DRAM_START_ADDR);
+			BUG_ON(kernels > DRAM_SIZE || kernels == 0);
 
-	if (verbose) {
-		printf("kernelp: 0x%p kernels: 0x%08x\n", kernelp, kernels);
-		printf("dtbp: 0x%p\n", (uintptr_t)fdt);
-		printf("initrd2_start: 0x%p initrd2_size: 0x%08x\n", initrd2_start, initrd2_size);
-	}
+			offset = fdt_node_offset_by_prop_value(fdt, -1, "device_type", "memory", 7);
+			if (offset < 0) {
+				rval = offset;
+				pr_err("libfdt memory node error: %s\n", fdt_strerror(rval));
+				goto fdt_update_tags_exit;
+			}
 
-	BUG_ON(kernelp < DRAM_START_ADDR);
-	BUG_ON(kernels > DRAM_SIZE || kernels == 0);
+			val[0] = cpu_to_fdt32((u64)kernelp >> 32);
+			val[1] = cpu_to_fdt32((u32)kernelp);
+			val[2] = cpu_to_fdt32((u64)kernels >> 32);
+			val[3] = cpu_to_fdt32((u32)kernels);
 
-	offset = fdt_node_offset_by_prop_value(fdt, -1, "device_type", "memory", 7);
-	if (offset < 0) {
-		rval = offset;
-		pr_err("libfdt memory node error: %s\n", fdt_strerror(rval));
-		goto fdt_update_tags_exit;
-	}
-
-	val[0] = cpu_to_fdt32((u64)kernelp >> 32);
-	val[1] = cpu_to_fdt32((u32)kernelp);
-	val[2] = cpu_to_fdt32((u64)kernels >> 32);
-	val[3] = cpu_to_fdt32((u32)kernels);
-
-	rval = fdt_setprop(fdt, offset, "reg", val, sizeof(val));
-	if (rval < 0) {
-		pr_err("libfdt setup memory error: %s\n", fdt_strerror(rval));
-		goto fdt_update_tags_exit;
+			rval = fdt_setprop(fdt, offset, "reg", val, sizeof(val));
+			if (rval < 0) {
+				pr_err("libfdt setup memory error: %s\n", fdt_strerror(rval));
+				goto fdt_update_tags_exit;
+			}
+		}
 	}
 
 	rval = fdt_update_cluster_cpux(fdt, cluster_id, verbose);
@@ -267,7 +267,6 @@ static int fdt_update_cluster_tags(u32 cluster_id, uintptr_t jump_addr,
 	}
 
 #if defined(SYSTEM_COUNTER_IS_BROKEN)
-// #if 1
 	offset = fdt_node_offset_by_compatible(fdt, -1, "arm,armv8-timer");
 	if (offset >= 0) {
 		rval = fdt_setprop_u32(fdt, offset, "clock-frequency", get_apb_bus_freq_hz());

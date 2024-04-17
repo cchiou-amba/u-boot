@@ -48,12 +48,12 @@
 
 #ifdef CONFIG_AMBA_BOOT_SECONDARY_CLUSTER
 #define MULTI_CLUSTER_SETTINGS                              \
-    "init_cluster1_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_jump_addr} /vmlinuz-multi\0" \
-    "init_cluster2_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_2_jump_addr} /vmlinuz-multi\0" \
-    "init_cluster3_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_3_jump_addr} /vmlinuz-multi\0" \
-    "init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /dtb/ambarella/cluster1.dtb\0" \
-    "init_cluster3_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_3_dtb_addr} /dtb/ambarella/cluster3.dtb\0" \
-    "init_cluster2_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_2_dtb_addr} /dtb/ambarella/cluster2.dtb\0"
+    "init_cluster1_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_jump_addr} /multi-cluster/vmlinuz-multi\0" \
+    "init_cluster2_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_2_jump_addr} /multi-cluster/vmlinuz-multi\0" \
+    "init_cluster3_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_3_jump_addr} /multi-cluster/vmlinuz-multi\0" \
+    "init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /multi-cluster/dtb/ambarella/cluster1.dtb\0" \
+    "init_cluster3_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_3_dtb_addr} /multi-cluster/dtb/ambarella/cluster3.dtb\0" \
+    "init_cluster2_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_2_dtb_addr} /multi-cluster/dtb/ambarella/cluster2.dtb\0"
 #else
 #define MULTI_CLUSTER_SETTINGS
 #endif

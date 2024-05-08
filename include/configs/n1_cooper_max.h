@@ -42,6 +42,8 @@
 #define PARTS_DEFAULT \
         /* Linux partitions */ \
         "uuid_disk=${uuid_gpt_disk};" \
+        "name=bst,start=0x0,size=128K,uuid=${uuid_gpt_bst};" \
+        "name=bld,size=4M,uuid=${uuid_gpt_bld};" \
         "name=kernel,start=${size_start},size=${size_kernel},uuid=${uuid_gpt_kernel};" \
         "name=rootfs,size=${size_rootfs},uuid=${uuid_gpt_rootfs}\0"
 #endif /* PARTS_DEFAULT */
@@ -74,7 +76,6 @@
     "iso_dev_num=1\0"                                           \
     "iso_boot_part=1\0"                                         \
     "emmc_dev_num=0\0"                                          \
-    "emmc_boot_part=1\0"                                        \
     "fdt_addr_r=0x200000\0"                                     \
     "extlinux_addr_r=0x401000\0"                                \
     "ramdisk_addr_r=0x8000000\0"                                \
@@ -104,16 +105,17 @@
 
 #ifdef CONFIG_SUPPORT_EMMC_BOOT
 #define CONFIG_EXTRA_ENV_SETTINGS               \
-        "partitions=" PARTS_DEFAULT             \
+	"partitions=" PARTS_DEFAULT             \
 	"cpu_info= nr_cpus=4 maxcpus=4 \0"		\
 	"pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi \0"	\
-	"boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p2 rw rootfstype=ext4 init=/linuxrc rootwait ${cpu_info} ${pcie_arg};"            \
-	"mmc read ${kernel_addr} 0x1000 0x8000;"	\
+	"boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0 rw rootfstype=ext4 init=/linuxrc rootwait ${cpu_info} ${pcie_arg};"            \
+	"mmc read ${kernel_addr} 0x9800 0x8000;"	\
 	"booti ${kernel_addr} - ${fdtaddr} \0"      \
     EXTRA_ENV_COMMON_SETTINGS                   \
-    "size_start=1M\0"                           \
-    "size_kernel=256M\0"                        \
-    "size_rootfs=29G\0"                         \
+    "size_start=19M\0"                           \
+    "size_kernel=16M\0"                        \
+    "size_rootfs=512M\0"                       \
+    "emmc_boot_part=1\0"                       \
     "boot_target=iso_extlinux sd_extlinux emmc_extlinux emmc\0"
 
 #elif CONFIG_AMBARELLA_SPINOR
@@ -125,6 +127,7 @@
 	"mtd read kernel ${kernel_addr}; "		\
 	"booti ${kernel_addr} - ${fdtaddr} \0"	\
 	EXTRA_ENV_COMMON_SETTINGS				\
+	"emmc_boot_part=1\0"                    \
 	"boot_target=iso_extlinux sd_extlinux emmc_extlinux spinor\0"
 #endif
 

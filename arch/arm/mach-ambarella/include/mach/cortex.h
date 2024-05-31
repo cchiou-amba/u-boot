@@ -33,7 +33,8 @@
 #define SIZE_1MB_MASK		(SIZE_1MB - 1)
 
 /****************************************************/
-#if (CHIP_REV == CV2) || (CHIP_REV == CV22) || (CHIP_REV == CV25)
+#if defined(CONFIG_ARCH_AMBARELLA_CV22) || defined(CONFIG_ARCH_AMBARELLA_CV3) \
+|| defined(CONFIG_ARCH_AMBARELLA_CV25)
 #define AXI_SYS_TIMER_INDEPENDENT	0
 #define AXI_SYS_TIMER_DIVISOR		16 /* see AXI_CFG_REG(0x14) */
 #else
@@ -45,18 +46,19 @@
 #define CORTEX_RESET_OFFSET		0x28
 #define CORTEX_RESET_REG		AXI_CFG_REG(CORTEX_RESET_OFFSET)
 
-#if (CHIP_REV == CV3)
+#if defined(CONFIG_ARCH_AMBARELLA_CV3)
 #define CORTEX_RESET_MASK(id)		((0xf << ((id) * 7 + 3)))
-#elif (CHIP_REV == CV3AD685)
+#elif defined(CONFIG_ARCH_AMBARELLA_CV3AD685)
 #define CORTEX_RESET_MASK(id)		((0x1f << ((id) * 7 + 2)))
 #endif
 
-#if (CHIP_REV == CV3)
+#if defined(CONFIG_ARCH_AMBARELLA_CV3)
 #define CORTEX_RVBARADDR0_OFFSET	0x48
 #define CORTEX_RVBARADDR1_OFFSET	0x4c
 #define CORTEX_RVBARADDR2_OFFSET	0x50
 #define CORTEX_RVBARADDR3_OFFSET	0x54
-#elif (CHIP_REV == CV72) || (CHIP_REV == CV3AD685)
+#elif defined(CONFIG_ARCH_AMBARELLA_CV72) || defined(CONFIG_ARCH_AMBARELLA_CV3D685) \
+|| defined(CONFIG_ARCH_AMBARELLA_CV75)
 #define CORTEX_RVBARADDR0_OFFSET	0x48	/* 64-bit */
 #define CORTEX_RVBARADDR1_OFFSET	0x50	/* 64-bit */
 #define CORTEX_RVBARADDR2_OFFSET	0x58	/* 64-bit */
@@ -85,3 +87,4 @@ extern u64 secondary_cortex_jump[];
 /* ==========================================================================*/
 #endif
 #endif
+

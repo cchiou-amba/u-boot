@@ -26,6 +26,9 @@ config ARCH_AMBARELLA_CV3
 config ARCH_AMBARELLA_CV72
 	def_bool n
 
+config ARCH_AMBARELLA_CV75
+	def_bool n
+
 config AMBA_BOOT_SECONDARY_CORTEX
     bool "Ambarella boot secondary cortex"
     help
@@ -85,6 +88,10 @@ config TARGET_N1_COOPER_MAX
 	bool "Ambarella N1 Cooper Max"
 	select ARCH_AMBARELLA_CV3
 
+config TARGET_CV75_DEVKIT
+	bool "Ambarella CV75 devkit"
+	select ARCH_AMBARELLA_CV75
+
 endchoice
 
 #source "board/ambarella/s6lm_devkit/Kconfig"
@@ -95,5 +102,6 @@ source "board/ambarella/cv72_devkit/Kconfig"
 source "board/ambarella/cv3_devkit/Kconfig"
 source "board/ambarella/cv3_bub/Kconfig"
 source "board/ambarella/n1_cooper_max/Kconfig"
+source "board/ambarella/cv75_devkit/Kconfig"
 
 endif

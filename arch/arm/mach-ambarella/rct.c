@@ -42,6 +42,20 @@
 
 #define SCALER_SD_REG(id)		((id == 0) ? SCALER_SD0_REG : \
 					 (id == 1) ? SCALER_SD1_REG : SCALER_SD2_REG)
+
+#define PLL_ENET_CTRL_OFFSET		0x520
+#define PLL_ENET_FRAC_OFFSET		0x524
+#define PLL_ENET_CTRL2_OFFSET		0x528
+#define PLL_ENET_CTRL3_OFFSET		0x52C
+#define SCALER_ENET_POST_OFFSET		0x534
+#define PLL_ENET_CTRL_REG		RCT_REG(PLL_ENET_CTRL_OFFSET)
+#define PLL_ENET_FRAC_REG		RCT_REG(PLL_ENET_FRAC_OFFSET)
+#define PLL_ENET_CTRL2_REG		RCT_REG(PLL_ENET_CTRL2_OFFSET)
+#define PLL_ENET_CTRL3_REG		RCT_REG(PLL_ENET_CTRL3_OFFSET)
+#define SCALER_ENET_POST_REG		RCT_REG(SCALER_ENET_POST_OFFSET)
+
+#define CG_NAND_OFFSET			0x048
+#define CG_NAND_REG			RCT_REG(CG_NAND_OFFSET)
 /* ==========================================================================*/
 void rct_writel(unsigned long reg, unsigned int val)
 {
@@ -162,7 +176,24 @@ u32 get_sd_freq_hz(int slot)
 							rct_readl(PLL_SD_CTRL2_OFFSET), 1, readl(SCALER_SD_REG(slot)));
 }
 
+u32 get_enet_freq_hz(void)
+{
+	return rct_get_integer_pll_freq(readl(PLL_ENET_CTRL_REG), readl(PLL_ENET_CTRL2_REG), 1, 1);
+}
+
 u32 get_nand_freq_hz(void)
 {
+#if defined(CONFIG_ARCH_AMBARELLA_CV75)
+	u32 val = readl(CG_NAND_REG);
+
+	if (val & 0x00000010)
+		return 0;
+
+	if (val == 0)
+		val = 1;
+
+	return get_enet_freq_hz() / val;
+#else
 	return rct_get_integer_pll_freq(readl(PLL_NAND_CTRL_REG), readl(PLL_NAND_CTRL2_REG), 1, 1);
+#endif
 }

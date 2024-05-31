@@ -17,6 +17,8 @@
 #include "cv72.h"
 #elif defined(CONFIG_ARCH_AMBARELLA_CV3)
 #include "cv3.h"
+#elif defined(CONFIG_ARCH_AMBARELLA_CV75)
+#include "cv75.h"
 #else
 #error("No specified Ambarella Soc")
 #endif

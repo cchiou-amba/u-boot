@@ -54,7 +54,9 @@ int board_init(void)
 	/* PCIE Slot0&1 */
 	gpio_direction_output(17, 0);
 	gpio_direction_output(27, 1);
+	mdelay(10);
 	gpio_direction_output(26, 1);
+	mdelay(10);
 
 	/* PCIE Slot2 */
 	gpio_direction_output(139, 0);

@@ -728,12 +728,37 @@ static int eqos_start_clks_imx(struct udevice *dev)
 	return 0;
 }
 
+#if defined(CONFIG_ARCH_AMBARELLA_CV75)
 static int eqos_start_clks_ambarella(struct udevice *dev)
 {
 	int alias_id;
 	int node = dev_of_offset(dev);
 	const char *prop;
 
+	debug("%s(dev=%p):\n", __func__, dev);
+	prop = fdt_getprop(gd->fdt_blob, node, "amb,tx-clk-invert", NULL);
+	if (prop)
+		setbits_32(0xffe004e060, 1 << 31);
+
+	prop = fdt_getprop(gd->fdt_blob, node, "amb,rx-clk-invert", NULL);
+	if (prop)
+		setbits_32(0xffe004e060, 1 << 0);
+
+	prop = fdt_getprop(gd->fdt_blob, node, "amb,2nd-ref-clk-50mhz", NULL);
+	if (prop)
+		setbits_32(0xffe004e060, 1 << 23);
+
+	debug("%s: OK\n", __func__);
+	return 0;
+}
+#else
+static int eqos_start_clks_ambarella(struct udevice *dev)
+{
+	int alias_id;
+	int node = dev_of_offset(dev);
+	const char *prop;
+
+	debug("%s(dev=%p):\n", __func__, dev);
 	//alias_id = of_alias_get_id(node, "ethernet");
 	alias_id = dev->seq;
 	prop = fdt_getprop(gd->fdt_blob, node, "amb,tx-clk-invert", NULL);
@@ -747,7 +772,7 @@ static int eqos_start_clks_ambarella(struct udevice *dev)
 		else if (alias_id == 3)
 			setbits_32(0xffe003e270, 1 << 6);
 		else
-			debug("Unsupport ethernt%d \n", alias_id);
+			debug("Unsupport ethernet%d \n", alias_id);
 	}
 
 	prop = fdt_getprop(gd->fdt_blob, node, "amb,rx-clk-invert", NULL);
@@ -761,15 +786,17 @@ static int eqos_start_clks_ambarella(struct udevice *dev)
 		else if (alias_id == 3)
 			setbits_32(0xffe003e270, 1 << 1);
 		else
-			debug("Unsupport ethernt%d \n", alias_id);
+			debug("Unsupport ethernet%d \n", alias_id);
 	}
 
 	prop = fdt_getprop(gd->fdt_blob, node, "amb,2nd-ref-clk-50mhz", NULL);
 	if (prop)
 		setbits_32(0xffe003e060, 1 << 23);
 
+	debug("%s: OK\n", __func__);
 	return 0;
 }
+#endif
 
 static void eqos_stop_clks_tegra186(struct udevice *dev)
 {
@@ -2242,7 +2269,7 @@ static int eqos_probe(struct udevice *dev)
 			ret = -ENOMEM;
 			goto err_remove_resources_tegra;
 		}
-#if 0
+#if defined(CONFIG_ARCH_AMBARELLA_CV75)
 		/* if use controller's pins, eqos_mdio can be used */
 		eqos->mii->read = eqos_mdio_read;
 		eqos->mii->write = eqos_mdio_write;

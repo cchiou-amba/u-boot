@@ -61,7 +61,7 @@
 #endif
 
 #define EXTRA_ENV_COMMON_SETTINGS                               \
-    "serial#=Ambarella CV3\0"                                   \
+    "serial#=Ambarella N1\0"                                   \
     "reset_shm=mw.b 0xff0001fdef 0x4;"                          \
         "mw.q 0xff0001fdf0 0x0404040404040404;"                 \
         "mw.q 0xff0001fdf8 0x0404040404040404;"                 \

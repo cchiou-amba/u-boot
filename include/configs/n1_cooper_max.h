@@ -97,9 +97,6 @@
     "${extlinux_addr_r} ${iso_extlinux_file}\0"                 \
     "boot_emmc_extlinux=run print_shm_reg;"                     \
     "mmc rescan;"                                               \
-    "run init_cluster1_image; run init_cluster2_image;"         \
-    "run init_cluster3_image; run init_cluster1_dtb;"           \
-    "run init_cluster2_dtb; run init_cluster3_dtb;"             \
     "sysboot mmc ${emmc_dev_num}:${emmc_boot_part} any "        \
     "${extlinux_addr_r} ${emmc_extlinux_file}\0"
 

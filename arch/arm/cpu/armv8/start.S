@@ -101,6 +101,14 @@ pie_fixup_done:
 .macro	set_vbar, regname, reg
 .endm
 #endif
+
+	/* invalid all icache */
+	ic	ialluis
+	isb	sy
+
+	/* invalid all dcache on each core */
+	bl	flush_all_dcache
+
 	/*
 	 * Could be EL3/EL2/EL1, Initial State:
 	 * Little Endian, MMU Disabled, i/dCache Disabled
@@ -156,9 +164,9 @@ pie_fixup_done:
 #if defined(CONFIG_ARMV8_SPIN_TABLE) && !defined(CONFIG_SPL_BUILD)
 	branch_if_master x0, x1, master_cpu
 #if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER)
-    lsl x0, x0, #48
-    cbz x0, master_cpu
-    b   amba_secondary_cortex_wait
+	lsl	x0, x0, #48
+	cbz	x0, master_cpu
+	b	amba_secondary_cortex_wait
 #else
 	b	spin_table_secondary_jump
 #endif
@@ -178,7 +186,7 @@ slave_cpu:
 #endif /* CONFIG_ARMV8_MULTIENTRY */
 master_cpu:
 #if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER)
-    mrs	x9, mpidr_el1
+	mrs	x9, mpidr_el1
 	ubfx	x28, x9, #16, #8		/* check if secondary cluster */
 	cbz	x28, .L998
 
@@ -186,9 +194,20 @@ master_cpu:
 	mov	x1, #CORTEX_CLUSTER_STACK_SIZE
 	madd	x1, x28, x1, x2
 	mov	sp, x1			/* secondary cluster's stack */
+	sub	x0,	x1, #CORTEX_CLUSTER_STACK_SIZE
 
-    bl	irq_init 
+1:	str	xzr, [x0] /* clear second-cluster-bss */
+	add	x0, x0, #0x8
+	cmp	x0, x1
+	b.lo	1b
 
+	mov	x0, x28
+	bl	second_cluster_dcache_invalid_notify
+
+	mov	x0, x28
+	bl	wait_second_cluster_image_load_done
+
+	bl	irq_init
 	adr	x2, secondary_cortex_jump
 	mov	x1, #(CORTEX_CORE_MAX_NUM * 8)
 	madd	x0, x28, x1, x2
@@ -412,3 +431,8 @@ ENDPROC(c_runtime_cpu_setup)
 WEAK(save_boot_params)
 	b	save_boot_params_ret	/* back to my caller */
 ENDPROC(save_boot_params)
+
+#if defined(AMBOOT_BOOT_SECONDARY_CLUSTER)
+.extern second_cluster_dcache_invalid_notify
+.extern second_cluster_image_load_notify
+#endif

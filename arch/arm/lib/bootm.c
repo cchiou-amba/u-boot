@@ -33,6 +33,7 @@
 #include <bootm.h>
 #include <vxworks.h>
 #include <asm/cache.h>
+#include <stdio.h>
 
 #ifdef CONFIG_ARMV7_NONSEC
 #include <asm/armv7.h>
@@ -337,8 +338,18 @@ static void switch_to_el1(void)
 static void boot_jump_linux(bootm_headers_t *images, int flag)
 {
 #if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER)
-    extern int boot_cluster(int verbose);
-	int rval = boot_cluster(0);	/* boot other clusters than cluster0 */
+	extern int boot_cluster(int boot_multi_cluster, int verbose);
+	int boot_multi_cluster = 0;
+	char *commandline = env_get("bootargs");
+	if (commandline) {
+		char *needle = strstr(commandline, "multi-cluster");
+		boot_multi_cluster = (NULL != needle) ? 1 : 0;
+	}
+	int rval = boot_cluster(boot_multi_cluster, 0);	/* boot other clusters than cluster0 */
+	if (rval) {
+		printf("Failed to %s!\n",
+					 boot_multi_cluster ? "boot clusters" : "setup CPUs");
+	}
 #endif
 
 #ifdef CONFIG_ARM64

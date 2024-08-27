@@ -48,7 +48,7 @@
 	.global Writer
 	.global __cortex_a53_errata
 	.global __cortex_a76_errata
-    .global __delay
+	.global __delay
 
 el3_common_cpu_init:
 	ldr	x0, =0x30d00800
@@ -359,7 +359,7 @@ __delay:
     ldr x0, =0xFFFFF
     ldr x1, =0x0
 
-.L02:  
+.L02:
     sub x0, x0, #1
     cmp x0, x1
     bne .L02

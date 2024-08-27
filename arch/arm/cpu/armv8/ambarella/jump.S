@@ -44,14 +44,13 @@ jump_to_kernel:
 	mov	x29, x0
 	mov	x28, x1
 
-    /*Delay  */
-    bl __delay
-    
 	msr	daifset, #0x3		/* disable interrupt */
 	bl	_clean_flush_all_cache
 	bl	_disable_icache
 	bl	_disable_dcache
 	bl	__disable_mmu
+	isb sy /* Instruction Synchornization Barrier */
+	dsb sy /* Data Synchronization Barrier */
 
 	switch_el x1, 3f, 2f, 1f
 1:	/* make sure CPU is in EL1h mode */

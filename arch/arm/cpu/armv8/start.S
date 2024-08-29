@@ -106,8 +106,10 @@ pie_fixup_done:
 	ic	ialluis
 	isb	sy
 
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER)
 	/* invalid all dcache on each core */
 	bl	flush_all_dcache
+#endif
 
 	/*
 	 * Could be EL3/EL2/EL1, Initial State:

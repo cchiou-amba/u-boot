@@ -124,18 +124,13 @@ _clean_flush_all_cache:
 
 .global _flush_d_cache
 _flush_d_cache:
-	stp     x8, x9, [sp, #-16]!
 	invalidate_all_cache x0, x1, x2, x3, x4, x5, x6, x7, x8, x9
-	ldp     x8, x9, [sp], #16
 	ret
 
 .global _clean_d_cache
 _clean_d_cache:
-	stp     x8, x9, [sp, #-16]!
 	clean_all_cache x0, x1, x2, x3, x4, x5, x6, x7, x8, x9
-	ldp     x8, x9, [sp], #16
 	ret
-
 
 .globl _clean_d_cache_range
 _clean_d_cache_range:

@@ -26,22 +26,9 @@
 
 #define COUNTER_FREQUENCY			(50000000) /* 50MHz */
 
-/*
- *
- */
-#ifndef PARTS_DEFAULT
-/* Define the default GPT table for eMMC */
-#define PARTS_DEFAULT \
-	/* Linux partitions */ \
-	"uuid_disk=${uuid_gpt_disk};" \
-	"name=bst,start=0x0,size=128K,uuid=${uuid_gpt_bst};" \
-	"name=bld,size=4M,uuid=${uuid_gpt_bld};" \
-	"name=kernel,start=19M,size=16M,uuid=${uuid_gpt_kernel};" \
-	"name=rootfs,size=512M,uuid=${uuid_gpt_rootfs}\0"
-#endif /* PARTS_DEFAULT */
-
 #ifdef CONFIG_AMBA_BOOT_SECONDARY_CLUSTER
 #define MULTI_CLUSTER_SETTINGS							  \
+	"emmc_boot_part=1\0"	\
 	"init_cluster1_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_jump_addr} /multi-cluster/vmlinuz-multi\0" \
 	"init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /multi-cluster/dtb/ambarella/cluster1.dtb\0"
 #else
@@ -51,13 +38,10 @@
 #ifdef CONFIG_SUPPORT_EMMC_BOOT
 #define CONFIG_EXTRA_ENV_SETTINGS			   \
 	"kernel_addr_r=${kernel_addr}\0"						\
-	"partitions=" PARTS_DEFAULT			 \
-	"init_emmc_part=gpt write mmc 0 ${partitions}\0"\
 	"cpu_info= nr_cpus=4 maxcpus=4 \0"		\
 	"pcie_arg= pci=nomsi,pcie_bus_safe pcie_pme=nomsi \0"	\
-	"boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p4 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg};"			\
+	"boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p3 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg};"			\
 	"mmc read ${kernel_addr_r} 0x9800 0x8000; booti ${kernel_addr_r} - ${fdt_addr_r} \0"	  \
-	"emmc_boot_part=1\0"					   \
 	"boot_target=emmc\0"
 #endif
 

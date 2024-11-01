@@ -5,6 +5,7 @@
 
 #include <env.h>
 #include <dm.h>
+#include <asm/gpio.h>
 #include <asm/arch/misc.h>
 
 int dram_init(void)
@@ -23,7 +24,11 @@ int dram_init(void)
  */
 int board_init(void)
 {
-	printf("...\n");
+	/* SDMMC1 */
+	gpio_request(102, "sdmmc1_pwr");
+	gpio_request(103, "sdmmc1_v18");
+	gpio_direction_output(102, 1);
+	gpio_direction_output(103, 1);
 
 	return 0;
 }

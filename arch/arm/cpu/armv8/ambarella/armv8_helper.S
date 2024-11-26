@@ -40,7 +40,6 @@
 	.global __switch_el1t_to_el1h
 	.global __secondary_gic_init
 	.global __disable_mmu
-	.global __setup_aarch64_cntfrq
 
 	.global  el3_common_cpu_init
 	.global amboot_psci_exit
@@ -222,36 +221,6 @@ __disable_mmu:
 	bic	x0, x0, #0x1
 	msr	sctlr_el3, x0
 4:	ret
-
-
-__setup_aarch64_cntfrq:
-	mrs	x0, CurrentEL
-	cmp	x0, #0xc
-	bne	1f
-
-#if (AXI_SYS_TIMER_INDEPENDENT == 1)
-	ldr	x0, =PLL_ENET_CTRL_REG
-#else
-	ldr	x0, =PLL_CORTEX_CTRL_REG
-#endif
-	ldr	w1, [x0]
-	ubfx	w2, w1, #24, #7
-	add	w2, w2, #1		/* intprog */
-	ubfx	w3, w1, #16, #4
-	add	w3, w3, #1		/* sout */
-	ubfx	w4, w1, #12, #4
-	add	w4, w4, #1		/* sdiv */
-
-	ldr	w0, =REF_CLK
-	umull	x0, w0, w2
-	udiv	x0, x0, x3
-	umull	x0, w0, w4
-
-	ldr	w2, =AXI_SYS_TIMER_DIVISOR
-	udiv	x0, x0, x2
-
-	msr	cntfrq_el0, x0
-1:	ret
 
 
 /*-----------------------------------------------------------------------------

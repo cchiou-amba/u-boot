@@ -1,0 +1,6 @@
+N1-655 COOPER PRO BOARD
+M:	Gordon Weng <gjweng@ambarella.com>
+S:	Maintained
+F:	board/ambarella/n1_655_cooper_pro
+F:	include/configs/n1_655_cooper_pro.h
+F:	configs/ambarella_n1_655_cooper_pro_defconfig

@@ -1,0 +1,11 @@
+if TARGET_N1_655_COOPER_PRO
+
+# include/configs/<target>.h
+config SYS_CONFIG_NAME
+	default "n1_655_cooper_pro"
+
+# board/<board>/* (or board/<vendor>/<board>/* if CONFIG_SYS_VENDOR is defined)
+config SYS_BOARD
+	default "n1_655_cooper_pro"
+
+endif

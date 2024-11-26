@@ -363,10 +363,17 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 		}
 
 		printf("Boot cluster %d...\n",cluster_id);
-		writel(CORTEX_RVBAR_ADDR(gd->relocaddr), CORTEX_RVBARADDR0_REG + (cluster_id << 4));
-		writel(CORTEX_RVBAR_ADDR(gd->relocaddr), CORTEX_RVBARADDR1_REG + (cluster_id << 4));
-		writel(CORTEX_RVBAR_ADDR(gd->relocaddr), CORTEX_RVBARADDR2_REG + (cluster_id << 4));
-		writel(CORTEX_RVBAR_ADDR(gd->relocaddr), CORTEX_RVBARADDR3_REG + (cluster_id << 4));
+		writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR0_REG + (cluster_id << 5));
+		writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR0_REG + 4 + (cluster_id << 5));
+
+		writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR1_REG + (cluster_id << 5));
+		writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR1_REG + 4 + (cluster_id << 5));
+
+		writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR2_REG + (cluster_id << 5));
+		writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR2_REG + 4 + (cluster_id << 5));
+
+		writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR3_REG + (cluster_id << 5));
+		writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR3_REG + 4 + (cluster_id << 5));
 
 		clrbits_32(CORTEX_RESET_REG, CORTEX_RESET_MASK(cluster_id));
 

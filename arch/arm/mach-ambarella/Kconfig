@@ -99,6 +99,10 @@ config TARGET_N1_655_COBRA
 	bool "Ambarella N1_655 COBRA"
 	select ARCH_AMBARELLA_N1_655
 
+config TARGET_N1_655_COOPER_PRO
+	bool "Ambarella N1 655 COOPER PRO"
+	select ARCH_AMBARELLA_N1_655
+
 endchoice
 
 #source "board/ambarella/s6lm_devkit/Kconfig"
@@ -111,5 +115,6 @@ source "board/ambarella/cv3_bub/Kconfig"
 source "board/ambarella/n1_cooper_max/Kconfig"
 source "board/ambarella/cv75_devkit/Kconfig"
 source "board/ambarella/n1_655_cobra/Kconfig"
+source "board/ambarella/n1_655_cooper_pro/Kconfig"
 
 endif

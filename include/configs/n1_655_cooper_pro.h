@@ -49,30 +49,29 @@
 #endif /* PARTS_DEFAULT */
 
 #ifdef CONFIG_AMBA_BOOT_SECONDARY_CLUSTER
-#define MULTI_CLUSTER_SETTINGS                              \
+#define MULTI_CLUSTER_SETTINGS                                             \
     "init_cluster1_image=mmc read ${cluster_1_jump_addr} 0x9800 0x8000\0"  \
-	"init_cluster1_dtb=mmc read ${cluster_1_dtb_addr} 0x5800 0x800\0"
+    "init_cluster1_dtb=mmc read ${cluster_1_dtb_addr} 0x5800 0x800\0"
 #else
 #define MULTI_CLUSTER_SETTINGS
 #endif
 
 #define EXTRA_ENV_COMMON_SETTINGS                               \
-    "serial#=Ambarella N1 655\0"                                   \
-    "reset_shm=mw.b 0xff0001fdef 0x4;"                          \
-        "mw.q 0xff0001fdf0 0x0404040404040404;"                 \
-        "mw.q 0xff0001fdf8 0x0404040404040404;"                 \
-        "mw.q 0xff0001fe60 0x1010101010101010;"                 \
-        "mw.q 0xff0001fe68 0x1010101010101010;"                 \
-        "mw.q 0xff0001fe70 0x1010101010101010;"                 \
-        "mw.q 0xff0001fe78 0x1010101010101010\0"                \
-    "print_shm_reg=md.b 0xff0001fdef 0x11;"                     \
-        "md.q 0xff0001fe60 0x4\0"                               \
+    "serial#=Ambarella N1-655\0"                                \
+    "reset_shm=mw.q 0xff0001e000 0x0505050505050505;"           \
+              "mw.q 0xff0001e008 0x0505050505050505;"           \
+              "mw.q 0xff0001e160 0x2020202020202020;"           \
+              "mw.q 0xff0001e168 0x2020202020202020;"           \
+              "mw.q 0xff0001e170 0x2020202020202020;"           \
+              "mw.q 0xff0001e178 0x2020202020202020\0"          \
+    "print_shm_reg=md.b 0xff0001e000 0x10;"                     \
+        "md.q 0xff0001e160 0x4\0"                               \
     "sd_dev_num=1\0"                                            \
     "sd_boot_part=1\0"                                          \
     "iso_dev_num=1\0"                                           \
     "iso_boot_part=1\0"                                         \
     "emmc_dev_num=0\0"                                          \
-    "fdtaddr=0x200000\0"                                     \
+    "fdtaddr=0x200000\0"                                        \
     "extlinux_addr_r=0x401000\0"                                \
     "ramdisk_addr_r=0x8000000\0"                                \
     "kernel_addr_r=0x400000\0"                                  \
@@ -91,37 +90,38 @@
     "mmc rescan;"                                               \
     "sysboot mmc ${iso_dev_num}:${iso_boot_part} any "          \
     "${extlinux_addr_r} ${iso_extlinux_file}\0"                 \
-    "boot_emmc_extlinux=run print_shm_reg;"                     \
+    "boot_emmc_extlinux=run reset_shm; run print_shm_reg;"      \
     "mmc rescan;"                                               \
     "sysboot mmc ${emmc_dev_num}:${emmc_boot_part} any "        \
     "${extlinux_addr_r} ${emmc_extlinux_file}\0"
 
 #ifdef CONFIG_SUPPORT_EMMC_BOOT
-#define CONFIG_EXTRA_ENV_SETTINGS               \
-	"partitions=" PARTS_DEFAULT             \
-	"cpu_info= nr_cpus=4 maxcpus=4 \0"		\
-	"pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi \0"	\
-	"boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p5 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg} multi-cluster;"  \
-	"mmc read ${kernel_addr} 0x9800 0x8000;"	\
-	"booti ${kernel_addr} - ${fdt_addr_r} \0"      \
-    EXTRA_ENV_COMMON_SETTINGS                   \
-    "size_start=19M\0"                           \
-    "size_kernel=16M\0"                        \
-    "size_rootfs=512M\0"                       \
-    "emmc_boot_part=1\0"                       \
-    "boot_target=emmc iso_extlinux sd_extlinux emmc_extlinux\0"
+#define CONFIG_EXTRA_ENV_SETTINGS             \
+    "partitions=" PARTS_DEFAULT               \
+    "cpu_info= nr_cpus=4 maxcpus=4 \0"        \
+    "pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi \0" \
+    "boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p5 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg} multi-cluster;"  \
+    "run reset_shm; run print_shm_reg;"       \
+    "mmc read ${kernel_addr} 0x9800 0x8000;"  \
+    "booti ${kernel_addr} - ${fdt_addr_r} \0" \
+    EXTRA_ENV_COMMON_SETTINGS                 \
+    "size_start=19M\0"                        \
+    "size_kernel=16M\0"                       \
+    "size_rootfs=512M\0"                      \
+    "emmc_boot_part=1\0"                      \
+    "boot_target=emmc_extlinux emmc\0"
 
 #elif CONFIG_AMBARELLA_SPINOR
 #define CONFIG_EXTRA_ENV_SETTINGS						\
-	"bootargs_spinor= root=/dev/mtdblock3 rw rootfstype=jffs2 earlycon \0"	\
-	"cpu_info= nr_cpus=4 maxcpus=4 \0"		\
-	"pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi \0" \
-	"boot_spinor=setenv bootargs console=${console} ${bootargs_spinor} ${cpu_info} ${pcie_arg} ${mtdparts}; "		\
-	"mtd read kernel ${kernel_addr}; "		\
-	"booti ${kernel_addr} - ${fdtaddr} \0"	\
-	EXTRA_ENV_COMMON_SETTINGS				\
-	"emmc_boot_part=1\0"                    \
-	"boot_target=iso_extlinux sd_extlinux emmc_extlinux spinor\0"
+    "bootargs_spinor= root=/dev/mtdblock3 rw rootfstype=jffs2 earlycon \0"	\
+    "cpu_info= nr_cpus=4 maxcpus=4 \0"		\
+    "pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi \0" \
+    "boot_spinor=setenv bootargs console=${console} ${bootargs_spinor} ${cpu_info} ${pcie_arg} ${mtdparts}; "  \
+    "mtd read kernel ${kernel_addr}; "		\
+    "booti ${kernel_addr} - ${fdtaddr} \0"	\
+    EXTRA_ENV_COMMON_SETTINGS				\
+    "emmc_boot_part=1\0"                    \
+    "boot_target=iso_extlinux sd_extlinux emmc_extlinux spinor\0"
 #endif
 
 #if defined(CONFIG_BOOTCOMMAND)

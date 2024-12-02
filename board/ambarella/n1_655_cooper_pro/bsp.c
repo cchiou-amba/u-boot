@@ -7,6 +7,7 @@
 #include <dm.h>
 #include <asm/gpio.h>
 #include <asm/arch/misc.h>
+#include <linux/delay.h>
 
 int dram_init(void)
 {
@@ -24,9 +25,22 @@ int dram_init(void)
  */
 int board_init(void)
 {
-	/* SDMMC1 */
-	gpio_request(102, "sdmmc1_pwr");
+    /* WL_PWR */
+	gpio_request(20, "wl_pwr_on");
+	gpio_direction_output(20, 1);
+	mdelay(2);
+
+	/* WL_REG */
+	gpio_request(102, "wl_reg_on");
 	gpio_direction_output(102, 1);
+
+	/* BT_REG */
+	gpio_request(103, "bt_reg_on");
+	gpio_direction_output(103, 1);
+
+	/* USB SWITCH */
+	gpio_request(3, "usb_switch");
+	gpio_direction_output(3, 0); //0: usb work as type-c 1:usb work as hub
 
 	return 0;
 }

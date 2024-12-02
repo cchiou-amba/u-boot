@@ -342,8 +342,13 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 	int boot_multi_cluster = 0;
 	char *commandline = env_get("bootargs");
 	if (commandline) {
-		char *needle = strstr(commandline, "multi-cluster");
-		boot_multi_cluster = (NULL != needle) ? 1 : 0;
+		char *needle = strstr(commandline, "multi-cluster-emmc");
+		if (NULL != needle) {
+			boot_multi_cluster = 1;
+		} else {
+			needle = strstr(commandline, "multi-cluster");
+			boot_multi_cluster = (NULL != needle) ? 2 : 0;
+		}
 	}
 	int rval = boot_cluster(boot_multi_cluster, 0);	/* boot other clusters than cluster0 */
 	if (rval) {

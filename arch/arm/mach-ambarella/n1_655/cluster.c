@@ -330,6 +330,7 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 	uintptr_t jump_addr = 0, fdt_addr = 0, rmd_start = 0, rmd_size = 0;
 	int rval;
 	void* fdt;
+	char *cmd_prefix = NULL;
 	u32 cluster_id;
 
 	strict_strtoul(env_get("fdt_addr_r"), 16, &fdt_addr);
@@ -339,15 +340,21 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 		printf("fdt_update_cpux fail.\n");
 	}
 
-	if (!boot_multi_cluster) {
+	switch(boot_multi_cluster) {
+		case 0: cmd_prefix = NULL; break; /* No need to boot multi-cluster */
+		case 2: cmd_prefix = ""; break; /* Boot from extlinux.conf */
+		case 1: /* Boot from EMMC RAW partition */
+		default: cmd_prefix = "emmc_"; break;
+	}
+	if (NULL == cmd_prefix) {
 		return rval;
 	}
 
 	for (cluster_id = 1; cluster_id < CORTEX_CLUSTER_NUM; cluster_id++) {
 		char load_cluster_img_cmd[64] = {0};
 		char load_cluster_dtb_cmd[64] = {0};
-		sprintf(load_cluster_img_cmd, "init_cluster%d_image", cluster_id);
-		sprintf(load_cluster_dtb_cmd, "init_cluster%d_dtb", cluster_id);
+		sprintf(load_cluster_img_cmd, "%sinit_cluster%d_image", cmd_prefix, cluster_id);
+		sprintf(load_cluster_dtb_cmd, "%sinit_cluster%d_dtb", cmd_prefix, cluster_id);
 		switch(cluster_id) {
 			case 1:
 			case 2:

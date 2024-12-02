@@ -50,8 +50,10 @@
 
 #ifdef CONFIG_AMBA_BOOT_SECONDARY_CLUSTER
 #define MULTI_CLUSTER_SETTINGS                                             \
-    "init_cluster1_image=mmc read ${cluster_1_jump_addr} 0x9800 0x8000\0"  \
-    "init_cluster1_dtb=mmc read ${cluster_1_dtb_addr} 0x5800 0x800\0"
+    "init_cluster1_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_jump_addr} /multi-cluster/vmlinuz-multi\0" \
+    "init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /multi-cluster/dtb/ambarella/cluster1.dtb\0" \
+    "emmc_init_cluster1_image=mmc read ${cluster_1_jump_addr} 0x9800 0x8000\0"  \
+    "emmc_init_cluster1_dtb=mmc read ${cluster_1_dtb_addr} 0x5800 0x800\0"
 #else
 #define MULTI_CLUSTER_SETTINGS
 #endif
@@ -100,7 +102,7 @@
     "partitions=" PARTS_DEFAULT               \
     "cpu_info= nr_cpus=4 maxcpus=4 \0"        \
     "pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi \0" \
-    "boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p5 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg} multi-cluster;"  \
+    "boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p5 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg} multi-cluster-emmc;"  \
     "run reset_shm; run print_shm_reg;"       \
     "mmc read ${kernel_addr} 0x9800 0x8000;"  \
     "booti ${kernel_addr} - ${fdt_addr_r} \0" \

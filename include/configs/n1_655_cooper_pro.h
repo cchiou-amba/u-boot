@@ -74,6 +74,7 @@
     "iso_boot_part=1\0"                                         \
     "emmc_dev_num=0\0"                                          \
     "fdtaddr=0x200000\0"                                        \
+    "fdt_addr_r=0x200000\0"                                     \
     "extlinux_addr_r=0x401000\0"                                \
     "ramdisk_addr_r=0x8000000\0"                                \
     "kernel_addr_r=0x400000\0"                                  \
@@ -105,7 +106,7 @@
     "boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p5 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg} multi-cluster-emmc;"  \
     "run reset_shm; run print_shm_reg;"       \
     "mmc read ${kernel_addr} 0x9800 0x8000;"  \
-    "booti ${kernel_addr} - ${fdt_addr_r} \0" \
+    "booti ${kernel_addr} - ${fdtaddr} \0"    \
     EXTRA_ENV_COMMON_SETTINGS                 \
     "size_start=19M\0"                        \
     "size_kernel=16M\0"                       \

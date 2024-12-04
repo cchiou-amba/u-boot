@@ -45,4 +45,7 @@ endmenu
 config CONFIG_UBOOT_DTS_NO_PRIVATE_DEVICE
 	bool "Do not build IAV private device node into uboot DTS"
 
+config CONFIG_UBOOT_LYCHEE_SUPPORT
+	bool "Build uboot image for Lychee OS"
+
 endif

@@ -66,7 +66,7 @@
               "mw.q 0xff0001e168 0x2020202020202020;"           \
               "mw.q 0xff0001e170 0x2020202020202020;"           \
               "mw.q 0xff0001e178 0x2020202020202020\0"          \
-    "print_shm_reg=md.b 0xff0001e000 0x10;"                     \
+    "print_shm_reg=md.b 0xff0001e000 0xC;"                      \
         "md.q 0xff0001e160 0x4\0"                               \
     "sd_dev_num=1\0"                                            \
     "sd_boot_part=1\0"                                          \
@@ -93,7 +93,7 @@
     "mmc rescan;"                                               \
     "sysboot mmc ${iso_dev_num}:${iso_boot_part} any "          \
     "${extlinux_addr_r} ${iso_extlinux_file}\0"                 \
-    "boot_emmc_extlinux=run reset_shm; run print_shm_reg;"      \
+    "boot_emmc_extlinux=run print_shm_reg;"                     \
     "mmc rescan;"                                               \
     "sysboot mmc ${emmc_dev_num}:${emmc_boot_part} any "        \
     "${extlinux_addr_r} ${emmc_extlinux_file}\0"
@@ -104,7 +104,7 @@
     "cpu_info= nr_cpus=4 maxcpus=4 \0"        \
     "pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi \0" \
     "boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p5 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg} multi-cluster-emmc;"  \
-    "run reset_shm; run print_shm_reg;"       \
+    "run print_shm_reg;"                      \
     "mmc read ${kernel_addr} 0x9800 0x8000;"  \
     "booti ${kernel_addr} - ${fdtaddr} \0"    \
     EXTRA_ENV_COMMON_SETTINGS                 \

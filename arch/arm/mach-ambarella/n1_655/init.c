@@ -132,6 +132,18 @@ static void misc_pll_init(void)
 	writel(0x0, CLK_SI_INPUT_MODE_REG);
 }
 
+static void shm_setup(void)
+{
+	unsigned long shmem_base = 0xff00000000UL;
+	u32 i = 0;
+	for (i = 0; i < 12; ++ i) {
+		writeb(0x05, shmem_base + 0x1e000 + i);
+	}
+	for (i = 0; i < 32; i += 4) {
+		writel(0x20202020, shmem_base + 0x1e160 + i);
+	}
+}
+
 void soc_fixup(void)
 {
 	/* ATF will set DRAM arbiter and update sysconfig if it's used */
@@ -150,6 +162,7 @@ void soc_fixup(void)
 #endif
 
 	misc_pll_init();
+	shm_setup();
 }
 
 int arch_cpu_init(void)

@@ -25,7 +25,7 @@ int dram_init(void)
  */
 int board_init(void)
 {
-    /* WL_PWR */
+	/* WL_PWR */
 	gpio_request(20, "wl_pwr_on");
 	gpio_direction_output(20, 1);
 	mdelay(2);

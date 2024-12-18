@@ -119,14 +119,20 @@ int cdns3_drd_switch_host(struct cdns3 *cdns, int on)
 {
 	int ret, val;
 	u32 reg = OTGCMD_OTG_DIS;
+	u32 ready_bit;
 
 	/* switch OTG core */
 	if (on) {
 		writel(OTGCMD_HOST_BUS_REQ | reg, &cdns->otg_regs->cmd);
 
+		if (cdns->version == CDNSP_CONTROLLER_V2)
+			ready_bit = OTGSTS_CDNSP_XHCI_READY;
+		else
+			ready_bit = OTGSTS_CDNS3_XHCI_READY;
+
 		dev_dbg(cdns->dev, "Waiting till Host mode is turned on\n");
 		ret = readl_poll_timeout_atomic(&cdns->otg_regs->sts, val,
-						val & OTGSTS_XHCI_READY,
+						val & ready_bit,
 						100000);
 		if (ret) {
 			dev_err(cdns->dev, "timeout waiting for xhci_ready\n");
@@ -155,6 +161,7 @@ int cdns3_drd_switch_host(struct cdns3 *cdns, int on)
 int cdns3_drd_switch_gadget(struct cdns3 *cdns, int on)
 {
 	int ret, val;
+	u32 ready_bit;
 	u32 reg = OTGCMD_OTG_DIS;
 
 	/* switch OTG core */
@@ -163,8 +170,13 @@ int cdns3_drd_switch_gadget(struct cdns3 *cdns, int on)
 
 		dev_dbg(cdns->dev, "Waiting till Device mode is turned on\n");
 
+		if (cdns->version == CDNSP_CONTROLLER_V2)
+			ready_bit = OTGSTS_CDNSP_DEV_READY;
+		else
+			ready_bit = OTGSTS_CDNS3_DEV_READY;
+
 		ret = readl_poll_timeout_atomic(&cdns->otg_regs->sts, val,
-						val & OTGSTS_DEV_READY,
+						val & ready_bit,
 						100000);
 		if (ret) {
 			dev_err(cdns->dev, "timeout waiting for dev_ready\n");
@@ -268,8 +280,19 @@ int cdns3_drd_init(struct cdns3 *cdns)
 		cdns->otg_v0_regs = NULL;
 		cdns->otg_v1_regs = regs;
 		cdns->otg_regs = (void *)&cdns->otg_v1_regs->cmd;
-		cdns->version  = CDNS3_CONTROLLER_V1;
-		writel(1, &cdns->otg_v1_regs->simulate);
+		state = readl(&cdns->otg_v1_regs->did);
+
+		if (OTG_CDNSP_CHECK_DID(state)) {
+			cdns->version = CDNSP_CONTROLLER_V2;
+			printf("cdns->version = CDNSP_CONTROLLER_V2\n");
+		} else if (OTG_CDNS3_CHECK_DID(state)) {
+			cdns->version  = CDNS3_CONTROLLER_V1;
+			writel(1, &cdns->otg_v1_regs->simulate);
+		} else {
+			dev_err(cdns->dev, "not supporte DID=0x%08x\n", state);
+			return -EINVAL;
+		}
+
 		dev_info(cdns->dev, "DRD version v1 (ID: %08x, rev: %08x)\n",
 			 readl(&cdns->otg_v1_regs->did),
 			 readl(&cdns->otg_v1_regs->rid));

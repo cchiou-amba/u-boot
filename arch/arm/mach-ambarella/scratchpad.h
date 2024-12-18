@@ -1,0 +1,196 @@
+/*
+ * ambhw/scratchpad.h
+ *
+ * History:
+ *	2018/05/24 - [Cao Rongrong] created file
+ *
+ * Copyright (c) 2016 Ambarella International LP
+ *
+ * This file and its contents ("Software") are protected by intellectual
+ * property rights including, without limitation, U.S. and/or foreign
+ * copyrights. This Software is also the confidential and proprietary
+ * information of Ambarella International LP and its licensors. You may not use, reproduce,
+ * disclose, distribute, modify, or otherwise prepare derivative works of this
+ * Software or any portion thereof except pursuant to a signed license agreement
+ * or nondisclosure agreement with Ambarella International LP or its authorized affiliates.
+ * In the absence of such an agreement, you agree to promptly notify and return
+ * this Software to Ambarella International LP
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF NON-INFRINGEMENT,
+ * MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL AMBARELLA INTERNATIONAL LP OR ITS AFFILIATES BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; COMPUTER FAILURE OR MALFUNCTION; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+#ifndef __AMBHW_SCRATCHPAD_H__
+#define __AMBHW_SCRATCHPAD_H__
+
+#include <asm/arch/soc.h>
+
+/* ==========================================================================*/
+
+#if (CHIP_REV == CV2)
+#define SCRATCHPAD_OFFSET		0x1000
+#elif (CHIP_REV == CV5) || (CHIP_REV == N1)
+#define SCRATCHPAD_OFFSET		0x24000
+#elif (CHIP_REV == CV72)
+#define SCRATCHPAD_OFFSET		0x3E000
+#elif (CHIP_REV == CV3AD685) || (CHIP_REV == N1_655)
+#define SCRATCHPAD_OFFSET		0x3F000
+#elif (CHIP_REV == CV75)
+#define SCRATCHPAD_OFFSET		0x4E000
+#else
+#define SCRATCHPAD_OFFSET		0x22000
+#endif
+
+#if (CHIP_REV == CV2)
+// #define SCRATCHPAD_BASE			(AHB_S_BASE + SCRATCHPAD_OFFSET)
+#define SCRATCHPAD_BASE			(S_AHB_BASE + SCRATCHPAD_OFFSET)
+#else
+#define SCRATCHPAD_BASE			(AHB_BASE + SCRATCHPAD_OFFSET)
+#endif
+#define SCRATCHPAD_REG(x)		(SCRATCHPAD_BASE + (x))
+
+
+#if (CHIP_REV == CV2)
+#define AHBSP_CTL_OFFSET		0x0C
+#define AHBSP_SET_IRQ_OFFSET		0x10
+#define AHBSP_CLR_IRQ_OFFSET		0x14
+#define AHBSP_DATA0_OFFSET		0x18
+#define AHBSP_DATA1_OFFSET		0x1C
+#define AHBSP_DATA2_OFFSET		0x20
+#define AHBSP_DATA3_OFFSET		0x24
+#define AHBSP_GMII_DATA_OFFSET		0x6c
+#define AHBSP_GMII_ADDR_OFFSET		0x70
+#elif (CHIP_REV == CV72) || (CHIP_REV == CV75)
+#define AHBSP_CTL_OFFSET		0x60
+#define AHBSP_SET_IRQ_OFFSET		0x64
+#define AHBSP_CLR_IRQ_OFFSET		0x68
+#define AHBSP_DATA0_OFFSET		0x106C
+#define AHBSP_DATA1_OFFSET		0x1070
+#define AHBSP_DATA2_OFFSET		0x1074
+#define AHBSP_DATA3_OFFSET		0x1078
+#define AHBSP_GMII_DATA_OFFSET		0xA0	/* dummy since AD685,no AHB-MDIO */
+#define AHBSP_GMII_ADDR_OFFSET		0xA4
+#else
+#define AHBSP_CTL_OFFSET		0x60
+#define AHBSP_SET_IRQ_OFFSET		0x64
+#define AHBSP_CLR_IRQ_OFFSET		0x68
+#define AHBSP_DATA0_OFFSET		0x6C
+#define AHBSP_DATA1_OFFSET		0x70
+#define AHBSP_DATA2_OFFSET		0x74
+#define AHBSP_DATA3_OFFSET		0x78
+#define AHBSP_GMII_DATA_OFFSET		0xA0
+#define AHBSP_GMII_ADDR_OFFSET		0xA4
+#endif
+#define AHBSP_CTL_REG			SCRATCHPAD_REG(AHBSP_CTL_OFFSET)
+#define AHBSP_SET_IRQ_REG		SCRATCHPAD_REG(AHBSP_SET_IRQ_OFFSET)
+#define AHBSP_CLR_IRQ_REG		SCRATCHPAD_REG(AHBSP_CLR_IRQ_OFFSET)
+#define AHBSP_DATA0_REG			SCRATCHPAD_REG(AHBSP_DATA0_OFFSET)
+#define AHBSP_DATA1_REG			SCRATCHPAD_REG(AHBSP_DATA1_OFFSET)
+#define AHBSP_DATA2_REG			SCRATCHPAD_REG(AHBSP_DATA2_OFFSET)
+#define AHBSP_DATA3_REG			SCRATCHPAD_REG(AHBSP_DATA3_OFFSET)
+#define AHBSP_GMII_DATA_REG		SCRATCHPAD_REG(AHBSP_GMII_DATA_OFFSET)
+#define AHBSP_GMII_ADDR_REG		SCRATCHPAD_REG(AHBSP_GMII_ADDR_OFFSET)
+
+#if (CHIP_REV == CV5)
+#define AHBSP_SD_DDL_CTRL_OFFSET	0xf4
+#else
+#define AHBSP_SD_DDL_CTRL_OFFSET	0xfc
+#endif
+#define AHBSP_SD_DDL_CTRL_REG		SCRATCHPAD_REG(AHBSP_SD_DDL_CTRL_OFFSET)
+
+#if (CHIP_REV == CV5) || (CHIP_REV == N1) || (CHIP_REV == CV72) || \
+	(CHIP_REV == CV3AD685) || (CHIP_REV == N1_655)
+#define AHBSP_SD_DDL_CTRL_VAL(slot)	(0x1f)
+#else
+#define AHBSP_SD_DDL_CTRL_VAL(slot)	(((slot) == 0) ? 0x6000 : 0x40)
+#endif
+
+/* ==========================================================================*/
+
+#if (CHIP_REV == S6LM) || (CHIP_REV == CV2) || (CHIP_REV == CV22) || \
+	(CHIP_REV == CV25) || (CHIP_REV == CV28)
+#define SECURE_SCRATCHPAD_OFFSET	0x1000
+#elif (CHIP_REV == CV5) || (CHIP_REV == N1_655)
+#define SECURE_SCRATCHPAD_OFFSET	0x2F000
+#else
+#define SECURE_SCRATCHPAD_OFFSET	0x2E000
+#endif
+// #define SECURE_SCRATCHPAD_BASE		(AHB_S_BASE + SECURE_SCRATCHPAD_OFFSET)
+// #define SECURE_SCRATCHPAD_REG(x)	(SECURE_SCRATCHPAD_BASE + (x))
+
+#if (CHIP_REV == CV2)
+#define SECSP_RNG_CNT_OFFSET		0x40
+#define SECSP_RNG_DATA0_OFFSET		0x44
+#define SECSP_RNG_DATA1_OFFSET		0x48
+#define SECSP_RNG_DATA2_OFFSET		0x4C
+#define SECSP_RNG_DATA3_OFFSET		0x50
+#elif (CHIP_REV == CV3AD685) || (CHIP_REV == N1_655)
+#define SECSP_RNG_CNT_OFFSET		0xD0
+#define SECSP_RNG_DATA0_OFFSET		0xD4
+#define SECSP_RNG_DATA1_OFFSET		0xD8
+#define SECSP_RNG_DATA2_OFFSET		0xDC
+#define SECSP_RNG_DATA3_OFFSET		0xE0
+#else
+#define SECSP_RNG_CNT_OFFSET		0x00
+#define SECSP_RNG_DATA0_OFFSET		0x04
+#define SECSP_RNG_DATA1_OFFSET		0x08
+#define SECSP_RNG_DATA2_OFFSET		0x0C
+#define SECSP_RNG_DATA3_OFFSET		0x10
+#endif
+#if (CHIP_REV == CV72) || (CHIP_REV == CV75)
+#define SECSP_RNG_DATA4_OFFSET		0xBC
+#elif (CHIP_REV == CV3AD685) || (CHIP_REV == N1_655)
+#define SECSP_RNG_DATA4_OFFSET		0xE4
+#else
+#define SECSP_RNG_DATA4_OFFSET		0xB0
+#endif
+
+// #define SECSP_RNG_CNT_REG		SECURE_SCRATCHPAD_REG(SECSP_RNG_CNT_OFFSET)
+// #define SECSP_RNG_DATA0_REG		SECURE_SCRATCHPAD_REG(SECSP_RNG_DATA0_OFFSET)
+// #define SECSP_RNG_DATA1_REG		SECURE_SCRATCHPAD_REG(SECSP_RNG_DATA1_OFFSET)
+// #define SECSP_RNG_DATA2_REG		SECURE_SCRATCHPAD_REG(SECSP_RNG_DATA2_OFFSET)
+// #define SECSP_RNG_DATA3_REG		SECURE_SCRATCHPAD_REG(SECSP_RNG_DATA3_OFFSET)
+// #define SECSP_RNG_DATA4_REG		SECURE_SCRATCHPAD_REG(SECSP_RNG_DATA4_OFFSET)
+
+/* ==========================================================================*/
+
+#if (CHIP_REV == S6LM) || (CHIP_REV == CV2) || (CHIP_REV == CV22) || \
+	(CHIP_REV == CV25) || (CHIP_REV == CV28) || (CHIP_REV == CV5)
+#define SECSP_BOOT_STS_OFFSET		0x94
+#else
+#define SECSP_BOOT_STS_OFFSET		0x9C
+#endif
+// #define SECSP_BOOT_STS_REG		SECURE_SCRATCHPAD_REG(SECSP_BOOT_STS_OFFSET)
+
+
+/* ==========================================================================*/
+
+#if (CHIP_REV == S6LM) || (CHIP_REV == CV2) || (CHIP_REV == CV22) || \
+	(CHIP_REV == CV25) || (CHIP_REV == CV28)
+#define AHB_SP0_RAM_OFFSET		0x20000
+#define AHB_SP1_RAM_OFFSET		0x21000
+#else
+#define AHB_SP0_RAM_OFFSET		0x30000
+#define AHB_SP1_RAM_OFFSET		0x31000
+#endif
+// #define AHB_SP0_RAM_BASE		(AHB_S_BASE + AHB_SP0_RAM_OFFSET)
+// #define AHB_SP1_RAM_BASE		(AHB_S_BASE + AHB_SP1_RAM_OFFSET)
+
+#define BOOT_MAGIC_FLAG			0x5A5A
+#define BOOT_RETRY_CNT			(2)
+// #define BLD_BOOT_STA_REG		(AHB_SP0_RAM_BASE + 0x1000 - 0x4)
+// #define SYS_BOOT_STA_REG		(AHB_SP0_RAM_BASE + 0x1000 - 0x8)
+#define STATUS_VALID(x)			(((x) & BOOT_MAGIC_FLAG) == BOOT_MAGIC_FLAG)
+
+#endif
+/* ==========================================================================*/

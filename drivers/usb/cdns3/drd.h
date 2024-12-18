@@ -70,6 +70,12 @@ struct cdns3_otg_common_regs {
 	__le32 ivect;
 };
 
+/* CDNSP driver supports 0x000403xx Cadence USB controller family. */
+#define OTG_CDNSP_CHECK_DID(did) (((did) & GENMASK(31, 8)) == 0x00040300)
+
+/* CDNS3 driver supports 0x000402xx Cadence USB controller family. */
+#define OTG_CDNS3_CHECK_DID(did) (((did) & GENMASK(31, 8)) == 0x00040200)
+
 /* CDNS_RID - bitmasks */
 #define CDNS_RID(p)			((p) & GENMASK(15, 0))
 
@@ -136,8 +142,12 @@ struct cdns3_otg_common_regs {
 #define OTGSTS_STRAP_GADGET		0x04
 /* Host mode is turned on. */
 #define OTGSTS_XHCI_READY		BIT(26)
+#define OTGSTS_CDNS3_XHCI_READY		BIT(26)
+#define OTGSTS_CDNSP_XHCI_READY		BIT(27)
 /* "Device mode is turned on .*/
 #define OTGSTS_DEV_READY		BIT(27)
+#define OTGSTS_CDNS3_DEV_READY		BIT(27)
+#define OTGSTS_CDNSP_DEV_READY		BIT(26)
 
 /* OTGSTATE- bitmasks */
 #define OTGSTATE_DEV_STATE_MASK		GENMASK(2, 0)

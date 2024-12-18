@@ -80,6 +80,7 @@ struct cdns3 {
 	struct cdns3_otg_common_regs	*otg_regs;
 #define CDNS3_CONTROLLER_V0	0
 #define CDNS3_CONTROLLER_V1	1
+#define CDNSP_CONTROLLER_V2	2
 	u32				version;
 
 	int				otg_irq;

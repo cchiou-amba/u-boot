@@ -24,7 +24,7 @@ DECLARE_GLOBAL_DATA_PTR;
  * @count: Number of ranges to be allocated for the regmap.
  * Return: A pointer to the newly allocated regmap, or NULL on error.
  */
-static struct regmap *regmap_alloc(int count)
+struct regmap *regmap_alloc(int count)
 {
 	struct regmap *map;
 
@@ -71,7 +71,7 @@ int regmap_init_mem_platdata(struct udevice *dev, fdt_val_t *reg, int count,
  *
  * Return: 0 if OK, -ve on error
  */
-static int init_range(ofnode node, struct regmap_range *range, int addr_len,
+int init_range(ofnode node, struct regmap_range *range, int addr_len,
 		      int size_len, int index)
 {
 	fdt_size_t sz;

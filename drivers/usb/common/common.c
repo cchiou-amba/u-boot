@@ -26,6 +26,10 @@ enum usb_dr_mode usb_get_dr_mode(ofnode node)
 	const char *dr_mode;
 	int i;
 
+#if defined(CONFIG_ARCH_AMBARELLA)
+	return USB_DR_MODE_HOST;
+#endif
+
 	dr_mode = ofnode_read_string(node, "dr_mode");
 	if (!dr_mode) {
 		pr_err("usb dr_mode not found\n");

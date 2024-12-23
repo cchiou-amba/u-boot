@@ -75,6 +75,8 @@
     "sd_boot_part=1\0"                                          \
     "iso_dev_num=1\0"                                           \
     "iso_boot_part=1\0"                                         \
+    "usb_dev_num=0\0"                                           \
+    "usb_boot_part=1\0"                                         \
     "emmc_dev_num=0\0"                                          \
     "fdt_addr_r=0x200000\0"                                     \
     "extlinux_addr_r=0x401000\0"                                \
@@ -86,11 +88,16 @@
     "fdt_high=0xffffffffffffffff\0"                             \
     "sd_extlinux_file=/extlinux/extlinux.conf\0"                \
     "iso_extlinux_file=/EFI/BOOT/live/extlinux/extlinux.conf\0" \
+    "usb_extlinux_file=/EFI/BOOT/live/extlinux/extlinux.conf\0" \
     "emmc_extlinux_file=/extlinux/extlinux.conf\0"              \
     "boot_sd_extlinux=run print_shm_reg;"                       \
     "mmc rescan;"                                               \
     "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "            \
     "${extlinux_addr_r} ${sd_extlinux_file}\0"                  \
+    "boot_usb_extlinux=run print_shm_reg;"                      \
+    "usb start;"                                                \
+    "sysboot usb ${usb_dev_num}:${usb_boot_part} any "          \
+    "${extlinux_addr_r} ${usb_extlinux_file}\0"                 \
     "boot_iso_extlinux=run print_shm_reg;"                      \
     "mmc rescan;"                                               \
     "sysboot mmc ${iso_dev_num}:${iso_boot_part} any "          \
@@ -113,7 +120,7 @@
     "size_kernel=16M\0"                        \
     "size_rootfs=512M\0"                       \
     "emmc_boot_part=1\0"                       \
-    "boot_target=iso_extlinux sd_extlinux emmc_extlinux emmc\0"
+    "boot_target=usb_extlinux iso_extlinux sd_extlinux emmc_extlinux emmc\0"
 
 #elif CONFIG_AMBARELLA_SPINOR
 #define CONFIG_EXTRA_ENV_SETTINGS						\
@@ -125,7 +132,7 @@
 	"booti ${kernel_addr} - ${fdtaddr} \0"	\
 	EXTRA_ENV_COMMON_SETTINGS				\
 	"emmc_boot_part=1\0"                    \
-	"boot_target=iso_extlinux sd_extlinux emmc_extlinux spinor\0"
+	"boot_target=usb_extlinux iso_extlinux sd_extlinux emmc_extlinux spinor\0"
 #endif
 
 #if defined(CONFIG_BOOTCOMMAND)

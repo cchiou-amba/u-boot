@@ -70,7 +70,7 @@
         "md.q 0xff0001e160 0x4\0"                               \
     "sd_dev_num=1\0"                                            \
     "sd_boot_part=1\0"                                          \
-    "iso_dev_num=1\0"                                           \
+    "iso_dev_num=0\0"                                           \
     "iso_boot_part=1\0"                                         \
     "emmc_dev_num=0\0"                                          \
     "fdtaddr=0x200000\0"                                        \
@@ -90,8 +90,8 @@
     "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "            \
     "${extlinux_addr_r} ${sd_extlinux_file}\0"                  \
     "boot_iso_extlinux=run print_shm_reg;"                      \
-    "mmc rescan;"                                               \
-    "sysboot mmc ${iso_dev_num}:${iso_boot_part} any "          \
+    "usb start;"                                                \
+    "sysboot usb ${iso_dev_num}:${iso_boot_part} any "          \
     "${extlinux_addr_r} ${iso_extlinux_file}\0"                 \
     "boot_emmc_extlinux=run print_shm_reg;"                     \
     "mmc rescan;"                                               \
@@ -112,7 +112,7 @@
     "size_kernel=16M\0"                       \
     "size_rootfs=512M\0"                      \
     "emmc_boot_part=1\0"                      \
-    "boot_target=emmc_extlinux emmc\0"
+    "boot_target=iso_extlinux emmc_extlinux emmc\0"
 
 #elif CONFIG_AMBARELLA_SPINOR
 #define CONFIG_EXTRA_ENV_SETTINGS						\

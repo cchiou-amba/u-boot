@@ -40,7 +40,7 @@ int board_init(void)
 
 	/* USB SWITCH */
 	gpio_request(3, "usb_switch");
-	gpio_direction_output(3, 0); //0: usb work as type-c 1:usb work as hub
+	gpio_direction_output(3, 1); //0: usb work as type-c 1:usb work as hub
 
 	return 0;
 }

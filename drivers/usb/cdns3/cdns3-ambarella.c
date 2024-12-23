@@ -12,7 +12,7 @@
 #include "core.h"
 #include <syscon.h>
 #include <regmap.h>
-// #include <asm/mach-ambarella/scratchpad.h>
+#include <asm/arch-ambarella/scratchpad.h>
 
 #define USB32C_CTRL_OFFSET		0x16c
 #define USB32C_RESET_MASK		(0x1)
@@ -104,6 +104,10 @@ static int cdns_amba_probe(struct udevice *dev)
 	/* Set default mode (mode_strap) to be actived after power on reset */
 	regmap_update_bits(data->scr_reg, USB32C_CTRL_OFFSET,
 			USB32C_MODE_STRAP_MASK, mode_strap << USB32C_MODE_STRAP_SHIFT);
+
+#ifndef CONFIG_PHY_CADENCE_TORRENT
+	regmap_write(data->scr_reg, USB32C_CTRL_OFFSET, 0x0000101a);
+#endif
 
 #if (CHIP_REV == CV75) || (CHIP_REV == CV72) || (CHIP_REV == CV3AD685) || (CHIP_REV == N1_655)
 	/* Default OCP is low with bit1 = 1; while bit1 = 0, ocp high */

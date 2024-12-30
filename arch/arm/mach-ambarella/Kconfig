@@ -87,6 +87,10 @@ config TARGET_CV72_DEVKIT
 	help
 		Ambarella International LP
 
+config TARGET_CV72_COOPER_MINI
+	bool "Ambarella CV72 Cooper Mini"
+	select ARCH_AMBARELLA_CV72
+
 config TARGET_N1_COOPER_MAX
 	bool "Ambarella N1 Cooper Max"
 	select ARCH_AMBARELLA_CV3
@@ -110,6 +114,7 @@ endchoice
 #source "board/ambarella/cv28_devkit/Kconfig"
 source "board/ambarella/cv5_devkit/Kconfig"
 source "board/ambarella/cv72_devkit/Kconfig"
+source "board/ambarella/cv72_cooper_mini/Kconfig"
 source "board/ambarella/cv3_devkit/Kconfig"
 source "board/ambarella/cv3_bub/Kconfig"
 source "board/ambarella/n1_cooper_max/Kconfig"

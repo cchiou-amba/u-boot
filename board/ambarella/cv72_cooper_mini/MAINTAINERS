@@ -1,0 +1,6 @@
+CV72 COOPER MINI BOARD
+M:	Sheng-Shi Ding <ssding@ambarella.com>
+S:	Maintained
+F:	board/ambarella/cv72_cooper_mini
+F:	include/configs/cv72_cooper_mini.h
+F:	configs/ambarella_cv72_cooper_mini_defconfig

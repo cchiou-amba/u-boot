@@ -341,10 +341,11 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 	}
 
 	switch(boot_multi_cluster) {
-		case 0: cmd_prefix = NULL; break; /* No need to boot multi-cluster */
-		case 2: cmd_prefix = ""; break; /* Boot from extlinux.conf */
-		case 1: /* Boot from EMMC RAW partition */
-		default: cmd_prefix = "emmc_"; break;
+		case -1: cmd_prefix = NULL;      break; /* No need to boot multi-cluster */
+		case  0: cmd_prefix = "";        break; /* Boot special multi-cluster */
+		case  1: cmd_prefix = "emmc_";   break; /* Boot emmc Kernel Image */
+		case  2: cmd_prefix = "lychee_"; break; /* Boot Lychee Kernel Image */
+		default: cmd_prefix = "emmc_";   break;
 	}
 	if (NULL == cmd_prefix) {
 		return rval;
@@ -388,11 +389,11 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 		secondary_cortex_jump[cluster_id * CORTEX_CORE_MAX_NUM + 0] = jump_addr;
 		_clean_d_cache_range(secondary_cortex_jump + cluster_id * CORTEX_CORE_MAX_NUM,
 												 sizeof(uintptr_t));
-		printf("Cluster%d loading Kernel to 0x%lx: ", cluster_id, jump_addr);
-		run_command(env_get(load_cluster_img_cmd), 0);
-
 		printf("Cluster%d loading    DTB to 0x%lx: ", cluster_id, fdt_addr);
 		run_command(env_get(load_cluster_dtb_cmd), 0);
+
+		printf("Cluster%d loading Kernel to 0x%lx: ", cluster_id, jump_addr);
+		run_command(env_get(load_cluster_img_cmd), 0);
 
 		rval = fdt_update_cluster_tags(cluster_id, jump_addr, rmd_start, rmd_size, verbose);
 		if (rval < 0) {

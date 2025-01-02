@@ -424,8 +424,19 @@ static int label_boot(struct cmd_tbl *cmdtp, struct pxe_label *label)
 			return 1;
 		}
 
-		if (label->append)
+		if (label->append) {
 			strncpy(bootargs, label->append, sizeof(bootargs));
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
+			extern int get_cluster_image_type(const char *boot_args);
+			int boot_multi_cluster = get_cluster_image_type(bootargs);
+			if (2 == boot_multi_cluster) { /* boot lychee kernel */
+				if (get_relfile_envaddr(cmdtp, label->kernel, "cluster_kernel_addr_r") < 0) {
+					printf("Failed to load kernel %s for clusters!\n", label->kernel);
+					return 1;
+				}
+			}
+#endif
+		}
 
 		strcat(bootargs, ip_str);
 		strcat(bootargs, mac_str);

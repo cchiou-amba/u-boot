@@ -50,6 +50,8 @@
 
 #ifdef CONFIG_AMBA_BOOT_SECONDARY_CLUSTER
 #define MULTI_CLUSTER_SETTINGS                                             \
+    "lychee_init_cluster1_image=unzip ${cluster_kernel_addr_r} ${cluster_1_jump_addr}\0" \
+    "lychee_init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /multi-cluster/dtb/ambarella/cluster1.dtb\0" \
     "init_cluster1_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_jump_addr} /multi-cluster/vmlinuz-multi\0" \
     "init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /multi-cluster/dtb/ambarella/cluster1.dtb\0" \
     "emmc_init_cluster1_image=mmc read ${cluster_1_jump_addr} 0x9800 0x8000\0"  \

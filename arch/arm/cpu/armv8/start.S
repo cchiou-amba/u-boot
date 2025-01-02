@@ -215,8 +215,8 @@ master_cpu:
 	madd	x0, x28, x1, x2
 
 	ldr	x0, [x0]
-	mov	x1, #(SIZE_1MB * 64)
-	add	x1, x1, x0
+	mov	x1, #(SIZE_1MB)
+	sub	x1, x0, x1
 	bl	jump_to_kernel
 	b .				/* never run here */
 .L998:

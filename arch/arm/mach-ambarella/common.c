@@ -8,6 +8,7 @@
 #include <asm/armv8/mmu.h>
 #include <asm/arch/soc.h>
 #include <asm/arch/misc.h>
+#include <asm/arch/cortex.h>
 
 #include <fdt.h>
 #include <linux/libfdt.h>
@@ -108,6 +109,39 @@ static void env_set_cfg_info(void)
 }
 
 #if defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
+int get_cluster_image_type(const char *boot_args)
+{
+	int ret = -1;
+	do {
+		char *type   = NULL;
+		char *needle = NULL;
+		if (!boot_args) {
+			break;
+		}
+
+		needle = strstr(boot_args, "multi-cluster");
+		if (!needle) {
+			break;
+		}
+
+		type = strstr(needle, "emmc");
+		if (NULL != type) {
+			ret = 1; /* multi-cluster-emmc, indicates loading Image from EMMC partition */
+			break;
+		}
+
+		type = strstr(needle, "lychee");
+		if (NULL != type) {
+			ret = 2; /* multi-cluster-lychee, indicates loading Lychee Kernel */
+			break;
+		}
+
+		ret = 0; /* multi-cluster, indicates loading special multi-cluster Kernel */
+	}while(0);
+
+	return ret;
+}
+
 static void env_set_clusters_mem_info(void){
 	const void *fdt = gd->fdt_blob;
 	const unsigned int *tmp;
@@ -118,54 +152,43 @@ static void env_set_clusters_mem_info(void){
 		return ;
 	}
 
-	tmp = fdt_getprop(fdt, offset, "cluster_3", NULL);
-	if (tmp){
-		if (env_get("cluster_3_jump_addr") == NULL ){
-			unsigned long cluster3_kernel_addr = ((unsigned long)fdt32_to_cpu(tmp[0]) << 32) | fdt32_to_cpu(tmp[1]);
-			unsigned long cluster3_ram_size = ((unsigned long)fdt32_to_cpu(tmp[2]) << 32) | fdt32_to_cpu(tmp[3]);
-			printf("set cluster3 ram...ram start is 0x%lx, size is 0x%lx.\n", cluster3_kernel_addr, cluster3_ram_size);
-			char kernel_addr_str[11];
-		    sprintf(kernel_addr_str, "0x%lx", cluster3_kernel_addr);
-			env_set("cluster_3_jump_addr", kernel_addr_str);
+	for (int i = 1; i < CORTEX_CLUSTER_NUM; ++ i) {
+		char cluster_name[16] = {0};
+		char jmp_addr_str[32] = {0};
+		char dtb_addr_str[32] = {0};
+		sprintf(cluster_name, "cluster_%d", i);
+		sprintf(jmp_addr_str, "cluster_%d_jump_addr", i);
+		sprintf(dtb_addr_str, "cluster_%d_dtb_addr",  i);
 
-			unsigned long addr = cluster3_kernel_addr + 0x4000000;
-			char dtb_addr[11];
-			sprintf(dtb_addr, "0x%lx", addr);
-			env_set("cluster_3_dtb_addr", dtb_addr);
-		}
-	}
+		tmp = fdt_getprop(fdt, offset, cluster_name, NULL);
+		if (tmp) {
+			if (env_get(jmp_addr_str) == NULL) {
+				unsigned long ram_addr     = ((unsigned long)fdt32_to_cpu(tmp[0]) << 32) | fdt32_to_cpu(tmp[1]);
+				unsigned long ram_size     = ((unsigned long)fdt32_to_cpu(tmp[2]) << 32) | fdt32_to_cpu(tmp[3]);
+				unsigned long dtb_start    = ram_addr;
+				unsigned long kernel_start = dtb_start + SIZE_1MB;
+				char jmp_addr_value[32] = {0};
+				char dtb_addr_value[32] = {0};
 
-	tmp = fdt_getprop(fdt, offset, "cluster_2", NULL);
-	if (tmp){
-		if (env_get("cluster_2_jump_addr") == NULL ){
-			unsigned long cluster2_kernel_addr = ((unsigned long)fdt32_to_cpu(tmp[0]) << 32) | fdt32_to_cpu(tmp[1]);
-			unsigned long cluster2_ram_size = ((unsigned long)fdt32_to_cpu(tmp[2]) << 32) | fdt32_to_cpu(tmp[3]);
-			printf("set cluster2 ram...ram start is 0x%lx, size is 0x%lx.\n", cluster2_kernel_addr, cluster2_ram_size);
-			char kernel_addr_str[11];
-			sprintf(kernel_addr_str, "0x%lx", cluster2_kernel_addr);
-			env_set("cluster_2_jump_addr", kernel_addr_str);
+				sprintf(jmp_addr_value, "0x%lx", kernel_start);
+				env_set(jmp_addr_str, jmp_addr_value);
 
-			unsigned long addr = cluster2_kernel_addr + 0x4000000;
-			char dtb_addr[11];
-			sprintf(dtb_addr, "0x%lx", addr);
-			env_set("cluster_2_dtb_addr", dtb_addr);
-		}
-	}
+				sprintf(dtb_addr_value, "0x%lx", dtb_start);
+				env_set(dtb_addr_str, dtb_addr_value);
 
-	tmp = fdt_getprop(fdt, offset, "cluster_1", NULL);
-	if (tmp){
-		if (env_get("cluster_1_jump_addr") == NULL ){
-			unsigned long cluster1_kernel_addr = ((unsigned long)fdt32_to_cpu(tmp[0]) << 32) | fdt32_to_cpu(tmp[1]);
-			unsigned long cluster1_ram_size = ((unsigned long)fdt32_to_cpu(tmp[2]) << 32) | fdt32_to_cpu(tmp[3]);
-			printf("set cluster1 ram...ram start is 0x%lx, size is 0x%lx.\n", cluster1_kernel_addr, cluster1_ram_size);
-			char kernel_addr_str[11];
-			sprintf(kernel_addr_str, "0x%lx", cluster1_kernel_addr);
-			env_set("cluster_1_jump_addr", kernel_addr_str);
+				if (i == 1) { /* use cluster 1 memory as culster_kernel_addr_r */
+					char ldr_addr_value[32]  = {0};
+					unsigned long load_start = kernel_start + (SIZE_1MB * 64);
 
-			unsigned long addr = cluster1_kernel_addr + 0x4000000;
-			char dtb_addr[11];
-			sprintf(dtb_addr, "0x%lx", addr);
-			env_set("cluster_1_dtb_addr", dtb_addr);
+					/* This address is for loading compressed kernel image */
+					sprintf(ldr_addr_value, "0x%lx", load_start);
+					env_set("cluster_kernel_addr_r", ldr_addr_value);
+
+					printf("cluster_kernel_addr_r 0x%lX\n", load_start);
+				}
+				printf("Set cluster%d: RAM@0x%lX, SIZE:0x%lX, DTB@0x%lX, KERNEL@0x%lX\n",
+							 i, ram_addr, ram_size, dtb_start, kernel_start);
+			}
 		}
 	}
 }

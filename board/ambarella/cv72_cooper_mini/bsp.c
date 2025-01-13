@@ -63,7 +63,7 @@ int board_late_init(void)
 {
 	int rval;
 
-	rval = env_set_hex("fdt_addr_r", (ulong)gd->fdt_blob);
+	rval = env_set_hex("fdtaddr", (ulong)gd->fdt_blob);
 	if (rval) {
 		printf("set fdtaddr env error.\n");
 		return rval;

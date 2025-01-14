@@ -41,7 +41,7 @@
   "iso_boot_part=1\0"                                         \
   "iso_extlinux_file=/EFI/BOOT/live/extlinux/extlinux.conf\0" \
   "boot_iso_extlinux=mmc rescan;"                             \
-  "sysbooot mmc ${iso_dev_num}:${iso_boot_part} any "         \
+  "sysboot mmc ${iso_dev_num}:${iso_boot_part} any "          \
   "${extlinux_addr_r} ${iso_extlinux_file}\0"
 
 #define BOOT_EMMC_EXTLINUX                                    \

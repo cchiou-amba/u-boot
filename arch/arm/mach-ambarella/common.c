@@ -169,6 +169,11 @@ static void env_set_clusters_mem_info(void){
 				unsigned long kernel_start = dtb_start + SIZE_1MB;
 				char jmp_addr_value[32] = {0};
 				char dtb_addr_value[32] = {0};
+				if (i == 1) { /* Set initramfs highest address to CLUSTER1 RAM START */
+				    char initrd_high_value[32] = {0};
+				    sprintf(initrd_high_value, "0x%lx", ram_addr);
+				    env_set("initrd_high", initrd_high_value);
+				}
 
 				sprintf(jmp_addr_value, "0x%lx", kernel_start);
 				env_set(jmp_addr_str, jmp_addr_value);

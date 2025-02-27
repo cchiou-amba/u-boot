@@ -361,8 +361,11 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 			case 2:
 			case 3: {
 				char cluster_jump_addr[64] = {0};
+				char cluster_dtbs_addr[64] = {0};
 				sprintf(cluster_jump_addr, "cluster_%d_jump_addr", cluster_id);
 				strict_strtoul(env_get(cluster_jump_addr), 16, &jump_addr);
+				sprintf(cluster_dtbs_addr, "cluster_%d_dtb_addr", cluster_id);
+				strict_strtoul(env_get(cluster_dtbs_addr), 16, &fdt_addr);
 			} break;
 			default:
 				printf("Wrong cluster ID: %u\n", cluster_id);

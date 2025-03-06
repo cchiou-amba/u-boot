@@ -66,6 +66,8 @@ struct ambarella_spinor {
 	u8		*dmabuf;
 };
 
+extern int spi_flash_mtd_register(struct spi_flash *flash);
+
 #if !CONFIG_IS_ENABLED(SYS_DCACHE_OFF)
 static void amba_spinor_invalidate_cache(struct ambarella_spinor *amba_spinor, u32 len)
 {
@@ -106,7 +108,7 @@ static int amba_spinor_dma_transfer(struct ambarella_spinor *amba_spinor,
 		/* Set dma0 ch1  control + src + dest */
 		control = DMA_CHANX_CTR_EN | DMA_CHANX_CTR_WM | DMA_CHANX_CTR_NI |
 			DMA_CHANX_CTR_BLK_32B | DMA_CHANX_CTR_TS_4B | len;
-		src_addr = amba_spinor->regbase + SPINOR_RXDATA_OFFSET;
+		src_addr = (u32)(uintptr_t)amba_spinor->regbase + SPINOR_RXDATA_OFFSET;
 		dst_addr = amba_spinor->dmaaddr;
 		rxtx_enable = SPINOR_DMACTRL_RXEN;
 		writel(src_addr, amba_spinor->dmabase + AMBA_DMA_CH1_SRC_ADDR_OFFSET);
@@ -120,7 +122,7 @@ static int amba_spinor_dma_transfer(struct ambarella_spinor *amba_spinor,
 		control = DMA_CHANX_CTR_EN | DMA_CHANX_CTR_RM | DMA_CHANX_CTR_NI |
 			DMA_CHANX_CTR_BLK_32B | DMA_CHANX_CTR_TS_4B | len;
 		src_addr = amba_spinor->dmaaddr;
-		dst_addr = amba_spinor->regbase + SPINOR_TXDATA_OFFSET;
+		dst_addr = (u32)(uintptr_t)amba_spinor->regbase + SPINOR_TXDATA_OFFSET;
 		rxtx_enable = SPINOR_DMACTRL_TXEN;
 		writel(src_addr, amba_spinor->dmabase + AMBA_DMA_CH0_SRC_ADDR_OFFSET);
 		writel(dst_addr, amba_spinor->dmabase + AMBA_DMA_CH0_DST_ADDR_OFFSET);
@@ -508,7 +510,7 @@ static int amba_spinor_erase(struct spi_nor *nor, loff_t offs)
 	return ret;
 }
 
-static int amba_spinor_read_reg(struct spi_nor *nor, u8 opcode, u8 *buf, size_t len)
+static int amba_spinor_read_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len)
 {
 	struct ambarella_spinor *amba_spinor = nor->priv;
 	struct spinor_ctrl cmd, data;
@@ -541,7 +543,7 @@ static int amba_spinor_read_reg(struct spi_nor *nor, u8 opcode, u8 *buf, size_t 
 	return 0;
 }
 
-static int amba_spinor_write_reg(struct spi_nor *nor, u8 opcode, const u8 *buf, size_t len)
+static int amba_spinor_write_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len)
 {
 	struct ambarella_spinor *amba_spinor = nor->priv;
 	struct spinor_ctrl cmd, data;
@@ -671,7 +673,7 @@ static int ambarella_spinor_read(struct udevice *dev, u32 offset, size_t len, vo
 	return log_ret(mtd->_read(mtd, offset, len, &retlen, buf));
 }
 
-static int ambarella_spinor_write(struct udevice *dev, u32 offset, size_t len, void *buf)
+static int ambarella_spinor_write(struct udevice *dev, u32 offset, size_t len, const void *buf)
 {
 	struct spi_flash *flash = dev_get_uclass_priv(dev);
 	struct mtd_info *mtd = &flash->mtd;
@@ -720,13 +722,14 @@ U_BOOT_DRIVER(ambarella_spinor) = {
 	.flags = DM_FLAG_PRE_RELOC,
 };
 
-void flash_init(void)
+int flash_init(void)
 {
 	struct udevice *dev;
 	int ret;
+	int size = 0;
 
 	if (rct_system_boot_from() != SYS_CONFIG_BOOT_SPINOR)
-		return ;
+		return 0;
 
 	debug("begin flash_init.\n");
 	ret = uclass_get_device_by_driver(UCLASS_SPI_FLASH,
@@ -734,4 +737,6 @@ void flash_init(void)
 			&dev);
 	if (ret && ret != -ENODEV)
 		debug("Initialize ambarella spinor controller error %d\n", ret);
+
+	return size;
 }

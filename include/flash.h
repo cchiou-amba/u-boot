@@ -84,7 +84,7 @@ typedef unsigned long flash_sect_t;
 
 /* Prototypes */
 
-unsigned long flash_init(void);
+int flash_init(void);
 void flash_print_info(flash_info_t *info);
 int flash_erase(flash_info_t *info, int s_first, int s_last);
 int flash_sect_erase(ulong addr_first, ulong addr_last);

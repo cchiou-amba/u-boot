@@ -11,6 +11,7 @@
 #include <asm/arch/cortex.h>
 
 #include <fdt.h>
+#include <fdt_support.h>
 #include <linux/libfdt.h>
 
 static const char *u_boot_cfg = "/u-boot_cfg";
@@ -109,6 +110,25 @@ static void env_set_cfg_info(void)
 }
 
 #if defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
+int update_fdt_memory_size(void *blob, u64 ram_start, u64 ram_size)
+{
+	int ret = 0;
+#if defined(CONFIG_OF_LIBFDT)
+	int bank;
+	u64 start[CONFIG_NR_DRAM_BANKS];
+	u64 size[CONFIG_NR_DRAM_BANKS];
+
+	for (bank = 0; bank < CONFIG_NR_DRAM_BANKS; bank++) {
+		start[bank] = gd->bd->bi_dram[bank].start;
+		size[bank]  = gd->bd->bi_dram[bank].size;
+	}
+	start[0] = ram_start;
+	size[0]  = ram_size;
+	ret = fdt_fixup_memory_banks(blob, start, size, CONFIG_NR_DRAM_BANKS);
+#endif
+	return ret;
+}
+
 int get_cluster_image_type(const char *boot_args)
 {
 	int ret = -1;
@@ -142,7 +162,8 @@ int get_cluster_image_type(const char *boot_args)
 	return ret;
 }
 
-static void env_set_clusters_mem_info(void){
+static void env_set_clusters_mem_info(void)
+{
 	const void *fdt = gd->fdt_blob;
 	const unsigned int *tmp;
 	int offset;

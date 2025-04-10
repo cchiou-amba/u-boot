@@ -349,6 +349,11 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 		default: cmd_prefix = "emmc_";   break;
 	}
 	if (NULL == cmd_prefix) {
+		/* Reset cluster 0 RAM_SIZE to DRAM_SIZE when single cluster boots */
+		if (!rval) {
+			extern int update_fdt_memory_size(void *blob, u64 ram_start, u64 ram_size);
+			rval = update_fdt_memory_size(fdt, 0, gd->ram_size);
+		}
 		return rval;
 	}
 

@@ -25,6 +25,17 @@ int dram_init(void)
  */
 int board_init(void)
 {
+	int i, poc_gpio[4] = {92, 93, 98, 99};
+	char buf[16];
+
+	/* PWR_POC */
+	for (i = 0; i < 4; i++) {
+		sprintf(buf, "pwr_poc_1_%c", 'a' + i);
+		gpio_request(poc_gpio[i], buf);
+		gpio_direction_output(poc_gpio[i], 1);
+		mdelay(1);
+	}
+
 	/* WL_PWR */
 	gpio_request(20, "wl_pwr_on");
 	gpio_direction_output(20, 1);

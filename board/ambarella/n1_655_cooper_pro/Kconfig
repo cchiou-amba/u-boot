@@ -8,4 +8,17 @@ config SYS_CONFIG_NAME
 config SYS_BOARD
 	default "n1_655_cooper_pro"
 
+choice
+	prompt "Board Revision"
+	default BOARD_N1_655_V110
+	help
+		Select N1_655 Cooper Pro Board Revision
+
+config BOARD_N1_655_V100
+	bool "N1_655 Cooper Pro V100 Board"
+
+config BOARD_N1_655_V110
+	bool "N1_655 Cooper Pro V110 Board"
+endchoice
+
 endif

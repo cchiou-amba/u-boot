@@ -60,8 +60,17 @@
 #define MULTI_CLUSTER_SETTINGS
 #endif
 
+#ifdef CONFIG_BOARD_N1_655_V110
+#  define SERIAL_NUM "serial#=Ambarella N1-655 v110\0"
+#else
+#  ifdef CONFIG_BOARD_N1_655_V100
+#     define SERIAL_NUM "serial#=Ambarella N1-655 v100\0"
+#   else
+#     define SERIAL_NUM "serial#=Ambarella N1-655\0"
+#  endif
+#endif
 #define EXTRA_ENV_COMMON_SETTINGS                               \
-    "serial#=Ambarella N1-655\0"                                \
+    SERIAL_NUM                                                  \
     "reset_shm=mw.q 0xff0001e000 0x0505050505050505;"           \
               "mw.q 0xff0001e008 0x0505050505050505;"           \
               "mw.q 0xff0001e160 0x2020202020202020;"           \

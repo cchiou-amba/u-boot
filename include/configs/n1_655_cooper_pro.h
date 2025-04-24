@@ -100,8 +100,7 @@
     "mmc rescan;"                                               \
     "sysboot mmc ${sd_dev_num}:${sd_boot_part} any "            \
     "${extlinux_addr_r} ${sd_extlinux_file}\0"                  \
-    "boot_iso_extlinux=run print_shm_reg;"                      \
-    "usb start;"                                                \
+    "boot_iso_extlinux=usb start;"                              \
     "sysboot usb ${iso_dev_num}:${iso_boot_part} any "          \
     "${extlinux_addr_r} ${iso_extlinux_file}\0"                 \
     "boot_emmc_extlinux=run print_shm_reg;"                     \

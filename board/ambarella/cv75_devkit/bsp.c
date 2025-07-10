@@ -67,14 +67,15 @@ static int __init_usb_gadget(void)
 	return 0;
 }
 
+#define EEPROM_BUS_ADDR 3
+#define EEPROM_DEV_ADDR 0x54
 int board_late_init(void)
 {
-
 	int rval;
+
 	/*
 	 * Specify the device-tree for Linux kernel
 	 */
-
 	rval = env_set_hex("fdtaddr", (ulong)gd->fdt_blob);
 	if (rval) {
 		printf("set fdtaddr env error.\n");
@@ -82,6 +83,14 @@ int board_late_init(void)
 	}
 
 	plat_r_board_late_init();
+
+	/* read EEPROM on I2C */
+	printf("=== Reading EEPROM on I2C ===\n");
+	rval = read_eeprom(EEPROM_BUS_ADDR, EEPROM_DEV_ADDR);
+	if (rval) {
+		printf("EEPROM read failed, continuing boot...\n");
+	}
+	printf("=== EEPROM Read Complete ===\n");
 
 #ifdef CONFIG_USB_GADGET
 	rval = __init_usb_gadget();

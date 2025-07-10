@@ -28,4 +28,7 @@ void rct_set_sd_pll(int slot, u32 freq_hz);
 u32 get_sd_freq_hz(int slot);
 
 u32 get_nand_freq_hz(void);
+
+int read_eeprom(int bus_addr, int dev_addr);
+
 #endif

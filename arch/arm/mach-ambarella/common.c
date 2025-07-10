@@ -10,14 +10,178 @@
 #include <asm/arch/misc.h>
 #include <asm/arch/cortex.h>
 
+#include <i2c.h>
+#include <dm/uclass.h>
+
 #include <fdt.h>
 #include <fdt_support.h>
 #include <linux/libfdt.h>
+#include <linux/delay.h>
+
 
 static const char *u_boot_cfg = "/u-boot_cfg";
 #if defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
 static const char *clusters_mem = "/memory";
 #endif
+
+#ifdef CONFIG_DM_I2C
+static void check_i2c_config(void)
+{
+	printf("I2C DM support: enabled\n");
+
+#ifdef CONFIG_SYS_I2C_SPEED
+	printf("Default I2C speed: %d Hz\n", CONFIG_SYS_I2C_SPEED);
+#endif
+
+#ifdef CONFIG_SYS_I2C_SLAVE
+	printf("Default I2C slave address: 0x%02x\n", CONFIG_SYS_I2C_SLAVE);
+#endif
+}
+#else
+static void check_i2c_config(void)
+{
+	printf("Warning: I2C DM support not enabled!\n");
+}
+#endif
+
+static void list_i2c_buses(void)
+{
+	struct udevice *bus;
+	struct uclass *uc;
+	int ret;
+
+	ret = uclass_get(UCLASS_I2C, &uc);
+	if (ret) {
+		printf("Failed to get I2C uclass: %d\n", ret);
+		return;
+	}
+
+	//printf("Available I2C buses:\n");
+	uclass_foreach_dev(bus, uc) {
+	//printf("  Bus %d: %s\n", bus->seq, bus->name);
+	}
+}
+
+static int eth_get_mac_from_eeprom(char *eeprom_buf, const char *str, char *mac_str)
+{
+    char *found_pos, *mac_start;
+    int i, mac_len = 0;
+
+    if (!eeprom_buf || !mac_str) {
+        printf("Invalid parameters\n");
+        return -1;
+    }
+
+    found_pos = strstr(eeprom_buf, str);
+    if (!found_pos) {
+        printf("%s: not found in EEPROM data\n", str);
+        return -1;
+    }
+
+    /* jump the "MACx:" string and found the start positon */
+    mac_start = found_pos + 5;
+
+    /* jumper TAB and space */
+    while (*mac_start && (*mac_start == ' ' || *mac_start == '\t')) {
+        mac_start++;
+    }
+
+    for (i = 0; i < 17; i++) {
+        if (mac_start[i] == '\0' || mac_start[i] == ' ' ||
+            mac_start[i] == ',' || mac_start[i] == '\n' ||
+            mac_start[i] == '\r' || mac_start[i] == '\t') {
+            break;
+        }
+        mac_str[i] = mac_start[i];
+        mac_len++;
+    }
+
+    /* MAC format xx:xx:xx:xx:xx:xx */
+    if (mac_len != 17) {
+        printf("Invalid MAC address length: %d (expected 17)\n", mac_len);
+        return -1;
+    }
+
+    mac_str[17] = '\0';
+
+    printf("Extracted MAC: %s\n", mac_str);
+    return 0;
+}
+
+#define EEPROM_SIZE (512*4)
+int read_eeprom(int bus_addr, int dev_addr)
+{
+	struct udevice *bus, *dev;
+	uint8_t eeprom_data[EEPROM_SIZE];  /* 增加到2048字节 */
+	uint16_t eeprom_addr = 0x00;
+	int ret, i;
+	char mac_str[18];
+
+
+	//printf("=== I2C Configuration Check ===\n");
+	check_i2c_config();
+	list_i2c_buses();
+
+	//printf("Initializing I2C[%d] EEPROM read...\n", bus_addr);
+
+	ret = uclass_get_device_by_seq(UCLASS_I2C, bus_addr, &bus);
+	if (ret) {
+		printf("Failed to get I2C[%d] bus: %d\n", bus_addr, ret);
+		return ret;
+	}
+
+	//printf("I2C[%d] bus found\n", bus_addr);
+
+	/* find device on I2C bus */
+	ret = dm_i2c_probe(bus, dev_addr, 0, &dev);
+	if (ret) {
+		printf("Failed to probe EEPROM at address 0x%02x on I2C[%d]: %d\n", dev_addr, bus_addr, ret);
+		return ret;
+	}
+
+	//printf("EEPROM found at I2C[%d] address 0x%02x\n", bus_addr, dev_addr);
+
+	/* set i2c chip address length with 2 bytes */
+	ret = i2c_set_chip_offset_len(dev, 2);
+	if (ret) {
+		printf("Failed to set EEPROM offset length to 2 bytes: %d\n", ret);
+		return ret;
+	}
+
+	memset(eeprom_data, 0, sizeof(eeprom_data));
+
+	for (i = 0; i < sizeof(eeprom_data); i += 32) {
+		int read_size = min(32, (int)(sizeof(eeprom_data) - i));
+
+		ret = dm_i2c_read(dev, eeprom_addr + i, &eeprom_data[i], read_size);
+		if (ret) {
+			printf("Failed to read EEPROM data at offset 0x%02x: %d\n",
+			       eeprom_addr + i, ret);
+			break;
+		}
+
+		udelay(1000);
+	}
+#if 0
+	if (ret) {
+		printf("EEPROM read incomplete, continuing with partial data...\n");
+	} else {
+		printf("EEPROM data read successfully\n");
+	}
+#endif
+	if(!eth_get_mac_from_eeprom((char *)eeprom_data, "MAC0:", mac_str)){
+		env_set("ethaddr", mac_str);
+		printf("Set ethaddr environment variable to: %s\n", mac_str);
+	}
+
+	if(!eth_get_mac_from_eeprom((char *)eeprom_data, "MAC1:", mac_str)){
+		env_set("eth1addr", mac_str);
+		printf("Set eth1ddr environment variable to: %s\n", mac_str);
+	}
+
+	return 0;
+}
+
 
 static struct mm_region mach_mem_map[] = {
 	{

@@ -105,7 +105,7 @@ void plat_f_early_print_init(void)
 #ifdef CONFIG_BAUDRATE
 	baudrate = CONFIG_BAUDRATE;
 #else
-	baudrate = 115200
+	baudrate = 115200;
 #endif
 	clk = REF_CLK;
 	dl = clk * 10 / baudrate / 16;

@@ -56,4 +56,24 @@
 #define USBC_DEVICE_SOFT_RST		(1 << 1)
 
 
+/* DRAM ctrl register */
+#define DRAMC_PHYS_BASE                         0xDFFE0000
+#define DRAM_DRAM_OFFSET                        0x000800
+#define DRAMC_DRAM_BASE                         (DRAMC_PHYS_BASE + DRAM_DRAM_OFFSET)
+#define DRAMC_DDRC_BASE                         (DRAMC_PHYS_BASE + DRAM_DDRC_OFFSET)
+
+#define DRAM_REG(x)				(DRAMC_DRAM_BASE + (x))
+/* Dram registers offset*/
+#define REG_DRAM_MODE				0x000
+
+
+#define RCT_REG(x)			(RCT_BASE + (x))
+#define SYS_CONFIG_REG                  RCT_REG(SYS_CONFIG_OFFSET)
+
+#define DRAM_BURST_SIZE(x)			64
+
+#define IDSP_RAM_START          (1ULL << 32)
+#define FRAMEBUFFER_SIZE		0
+
+#define DRAM_START_ADDR         DRAM_SPACE_START
 #endif

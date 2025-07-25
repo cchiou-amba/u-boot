@@ -14,6 +14,9 @@ config ARCH_AMBARELLA_CV28
 config ARCH_AMBARELLA_CV25
 	def_bool n
 
+config ARCH_AMBARELLA_CV22
+	def_bool n
+
 config ARCH_AMBARELLA_S6LM
 	def_bool n
 
@@ -48,6 +51,12 @@ choice
 config TARGET_S6LM_DEVKIT
 	bool "Ambarella S6L devkit"
 	select ARCH_AMBARELLA_S6LM
+	help
+		Ambarella International LP
+
+config TARGET_CV22_DEVKIT
+	bool "Ambarella CV22 devkit"
+	select ARCH_AMBARELLA_CV22
 	help
 		Ambarella International LP
 
@@ -110,6 +119,7 @@ config TARGET_N1_655_COOPER_PRO
 endchoice
 
 #source "board/ambarella/s6lm_devkit/Kconfig"
+#source "board/ambarella/cv22_devkit/Kconfig"
 #source "board/ambarella/cv25_devkit/Kconfig"
 #source "board/ambarella/cv28_devkit/Kconfig"
 source "board/ambarella/cv5_devkit/Kconfig"

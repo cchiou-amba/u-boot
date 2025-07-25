@@ -1281,7 +1281,10 @@ static int ambarella_nand_probe(struct udevice *dev)
 	ambarella_nand_init_chip(host, dev);
 
 	/* defualt is spinand */
-	ret = pinctrl_select_state(dev, "default");
+	if (host->is_spinand)
+		ret = pinctrl_select_state(dev, "default");
+	else
+		ret = pinctrl_select_state(dev, "nand");
 	if (ret)
 		pr_err("%s: select pinctrl error.\n", dev->name);
 

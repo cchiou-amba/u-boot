@@ -1,5 +1,5 @@
-#ifndef __PLAT_CV25_H__
-#define __PLAT_CV25_H__
+#ifndef __PLAT_CV22_H__
+#define __PLAT_CV22_H__
 
 #include <linux/sizes.h>
 /*
@@ -36,7 +36,7 @@
  */
 
 #define CONFIG_EXTRA_ENV_SETTINGS						\
-	"serial#=Ambarella CV25\0"						\
+	"serial#=Ambarella CV22\0"						\
 	"bootargs_nand= ubi.mtd=rootfs rootfstype=ubifs rw root=ubi0:rootfs \0"	\
 	"boot_nand=setenv bootargs "						\
 		"console=${console} ${bootargs_nand} ${mtdparts}; "		\

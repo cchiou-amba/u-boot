@@ -395,7 +395,8 @@ amba_i2c_irq_read_stop:
 	case AMBA_I2C_STATE_WRITE:
 amba_i2c_irq_write:
 		pinfo->state = AMBA_I2C_STATE_WRITE_WAIT_ACK;
-		writeb(pinfo->msgs->buf[pinfo->msg_index],
+		if(pinfo->msgs->len)
+			writeb(pinfo->msgs->buf[pinfo->msg_index],
 				pinfo->regbase + IDC_DATA_OFFSET);
 		break;
 	case AMBA_I2C_STATE_WRITE_WAIT_ACK:

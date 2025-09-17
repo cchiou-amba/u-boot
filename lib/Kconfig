@@ -82,7 +82,7 @@ config TPL_SPRINTF
 
 config SSCANF
 	bool
-	default n
+	default y
 
 config STRTO
 	bool

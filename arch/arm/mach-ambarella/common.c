@@ -316,7 +316,31 @@ int get_cluster_image_type(const char *boot_args)
 
 		type = strstr(needle, "lychee");
 		if (NULL != type) {
+			int i = 0;
+			char buf[32] = {0};
+			char dtbver[16] = {0};
+
 			ret = 2; /* multi-cluster-lychee, indicates loading Lychee Kernel */
+
+			/* Parse version */
+			while((i < (sizeof(buf) - 1)) && (type[i] != ' ')) {
+				buf[i] = type[i];
+				++ i;
+			}
+			if ((i >= (sizeof(buf) - 1)) && (type[i] != ' ')) {
+				/* Section is too large */
+				break;
+			}
+			/* Trying to get multi-cluster dtb version string */
+			type = strstr(buf, "-");
+			if (NULL != type) {
+				int maj, min;
+				if (2 == sscanf(&type[1], "%d.%d", &maj, &min)) {
+					snprintf(dtbver, sizeof(dtbver), "%d.%d", maj, min);
+					printf("Detected Multi-Cluster DTB for kernel-%s\n", dtbver);
+					env_set("dtbver", dtbver);
+				}
+			}
 			break;
 		}
 

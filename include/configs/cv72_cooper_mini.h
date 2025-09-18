@@ -69,7 +69,8 @@
   BOOT_EMMC                                                   \
   BOOT_SD_EXTLINUX                                            \
   BOOT_ISO_EXTLINUX                                           \
-  BOOT_EMMC_EXTLINUX
+  BOOT_EMMC_EXTLINUX                                          \
+  "usbdl=mw.l 0xffed080034 0x0213042e; sleep 3; reset;\0"
 #endif
 
 #undef CONFIG_BOOTCOMMAND

@@ -108,7 +108,8 @@
     "boot_emmc_extlinux=run print_shm_reg;"                     \
     "mmc rescan;"                                               \
     "sysboot mmc ${emmc_dev_num}:${emmc_boot_part} any "        \
-    "${extlinux_addr_r} ${emmc_extlinux_file}\0"
+    "${extlinux_addr_r} ${emmc_extlinux_file}\0"                \
+    "usbdl=mw.l 0xffed080034 0x00146e20; sleep 3; reset;\0"
 
 #ifdef CONFIG_SUPPORT_EMMC_BOOT
 #define CONFIG_EXTRA_ENV_SETTINGS             \

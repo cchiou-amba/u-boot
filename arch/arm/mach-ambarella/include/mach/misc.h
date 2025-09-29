@@ -29,6 +29,7 @@ u32 get_sd_freq_hz(int slot);
 
 u32 get_nand_freq_hz(void);
 
+int eth_get_mac_from_eeprom(char *eeprom_buf, const char *str, char *mac_str);
 int read_eeprom(int bus_addr, int dev_addr);
 
 #endif

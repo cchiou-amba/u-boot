@@ -62,7 +62,7 @@ static void list_i2c_buses(void)
 	}
 }
 
-static int eth_get_mac_from_eeprom(char *eeprom_buf, const char *str, char *mac_str)
+int eth_get_mac_from_eeprom(char *eeprom_buf, const char *str, char *mac_str)
 {
     char *found_pos, *mac_start;
     int i, mac_len = 0;

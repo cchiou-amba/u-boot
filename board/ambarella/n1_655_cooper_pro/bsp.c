@@ -25,8 +25,9 @@ int dram_init(void)
 #define SHARED_MEM_BASE     	0x40000000  // 1GB
 #define SHARED_MEM_MAGIC_OFFSET 0x800  // 2KB
 #define SHARED_MEM_MAGIC_VALUE  0x12345678
-#define MAX_TIMEOUT_MS      	10000  // 10s timeout
-#define CHECK_INTERVAL_US   	100
+#define SHARED_MEM_FAILED_VALUE  0x0
+#define MAX_TIMEOUT_MS      	2000  // 2s timeout
+#define CHECK_INTERVAL_MS   	2
 static int check_shared_memory(void)
 {
 	volatile u32 *magic_addr;
@@ -44,14 +45,18 @@ static int check_shared_memory(void)
 			return 0;
 		}
 
+		if (magic_value == SHARED_MEM_FAILED_VALUE) {
+			return -1;
+		}
+
 		if (magic_value != last_value) {
 			last_value = magic_value;
 		}
 
 		retry_count++;
-		timeout_ms += CHECK_INTERVAL_US / 1000;
+		timeout_ms += CHECK_INTERVAL_MS;
 
-		udelay(CHECK_INTERVAL_US);
+		mdelay(CHECK_INTERVAL_MS);
 	}
 
 	return -1;

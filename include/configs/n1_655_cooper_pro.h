@@ -112,11 +112,18 @@
     "usbdl=mw.l 0xffed080034 0x00146e20; sleep 3; reset;\0"
 
 #ifdef CONFIG_SUPPORT_EMMC_BOOT
+#ifdef CONFIG_AMBA_BOOT_SECONDARY_CLUSTER
+#define EMMC_BOOTARGS "setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p5 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg} ${ip_arg} multi-cluster-emmc;"
+#else
+#define EMMC_BOOTARGS "setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p4 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg};"
+#endif
+
 #define CONFIG_EXTRA_ENV_SETTINGS             \
     "partitions=" PARTS_DEFAULT               \
     "cpu_info= nr_cpus=4 maxcpus=4 \0"        \
     "pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi \0" \
-    "boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p5 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg} multi-cluster-emmc;"  \
+    "ip_arg= ip=172.20.1.1:::255.255.255.0:Ambarella:blazenet@01:off \0" \
+    "boot_emmc=" EMMC_BOOTARGS                \
     "run print_shm_reg;"                      \
     "mmc read ${kernel_addr} 0x9800 0x8000;"  \
     "booti ${kernel_addr} - ${fdtaddr} \0"    \

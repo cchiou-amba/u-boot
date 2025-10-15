@@ -63,7 +63,13 @@
     "init_cluster3_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_3_jump_addr} /multi-cluster/vmlinuz-multi\0" \
     "init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /multi-cluster/dtb/ambarella/cluster1.dtb\0" \
     "init_cluster2_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_2_dtb_addr} /multi-cluster/dtb/ambarella/cluster2.dtb\0" \
-    "init_cluster3_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_3_dtb_addr} /multi-cluster/dtb/ambarella/cluster3.dtb\0"
+    "init_cluster3_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_3_dtb_addr} /multi-cluster/dtb/ambarella/cluster3.dtb\0" \
+    "emmc_init_cluster1_image=mmc read ${cluster_1_jump_addr} 0x9800 0x8000\0" \
+    "emmc_init_cluster2_image=mmc read ${cluster_2_jump_addr} 0x9800 0x8000\0" \
+    "emmc_init_cluster3_image=mmc read ${cluster_3_jump_addr} 0x9800 0x8000\0" \
+    "emmc_init_cluster1_dtb=mmc read ${cluster_1_dtb_addr} 0x5800 0x80\0" \
+    "emmc_init_cluster2_dtb=mmc read ${cluster_2_dtb_addr} 0x5880 0x80\0" \
+    "emmc_init_cluster3_dtb=mmc read ${cluster_3_dtb_addr} 0x5900 0x80\0"
 #else
 #define MULTI_CLUSTER_SETTINGS
 #endif
@@ -126,19 +132,20 @@
     "usbdl=mw.l 0xffed080034 0x000e442e; sleep 3; reset;\0"
 
 #ifdef CONFIG_SUPPORT_EMMC_BOOT
-#define CONFIG_EXTRA_ENV_SETTINGS               \
-	"partitions=" PARTS_DEFAULT             \
-	"cpu_info= nr_cpus=4 maxcpus=4 \0"		\
+#define CONFIG_EXTRA_ENV_SETTINGS				\
+	"partitions=" PARTS_DEFAULT				\
+	"cpu_info= nr_cpus=4 maxcpus=4 \0"			\
 	"pcie_arg= pci=nomsi,pcie_bus_perf pcie_pme=nomsi \0"	\
-	"boot_emmc=setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0 rw rootfstype=ext4 init=/linuxrc rootwait ${cpu_info} ${pcie_arg};"            \
-	"mmc read ${kernel_addr} 0x9800 0x8000;"	\
-	"booti ${kernel_addr} - ${fdtaddr} \0"      \
-    EXTRA_ENV_COMMON_SETTINGS                   \
-    "size_start=19M\0"                           \
-    "size_kernel=16M\0"                        \
-    "size_rootfs=512M\0"                       \
-    "emmc_boot_part=1\0"                       \
-    "boot_target=usb_extlinux iso_extlinux sd_extlinux emmc_extlinux emmc\0"
+	"ip_arg= ip=172.20.1.1::172.20.1.1:255.255.255.0:Ambarella:blazenet@01:off ip=172.20.2.1::172.20.2.1:255.255.255.0:Ambarella:blazenet@02:off ip=172.20.3.1::172.20.3.1:255.255.255.0:Ambarella:blazenet@03:off \0" \
+	"boot_emmc= setenv bootargs console=ttyS0 noinitrd root=/dev/mmcblk0p4 rw rootfstype=ext4 rootwait ${cpu_info} ${pcie_arg} ${ip_arg} multi-cluster-emmc;" \
+	"mmc read ${kernel_addr} 0x9800 0x8000;"		\
+	"booti ${kernel_addr} - ${fdtaddr} \0"			\
+	EXTRA_ENV_COMMON_SETTINGS				\
+	"size_start=19M\0"					\
+	"size_kernel=16M\0"					\
+	"size_rootfs=512M\0"					\
+	"emmc_boot_part=1\0"					\
+	"boot_target=usb_extlinux iso_extlinux sd_extlinux emmc_extlinux emmc\0"
 
 #elif CONFIG_AMBARELLA_SPINOR
 #define CONFIG_EXTRA_ENV_SETTINGS						\
@@ -183,4 +190,3 @@
     "fi"
 
 #endif /* __PLAT_N1_COOPER_MAX_H__ */
-

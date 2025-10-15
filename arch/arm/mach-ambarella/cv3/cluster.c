@@ -39,6 +39,7 @@
 #include <asm/arch/soc.h>
 #include <linux/bug.h>
 #include <asm/system.h>
+#include <fdt_support.h>
 
 #define PTR_CAST(x)              ((void *)(unsigned long)(x))
 
@@ -286,6 +287,8 @@ static int fdt_update_cluster_tags(u32 cluster_id, uintptr_t jump_addr,
 	}
 #endif
 
+	fdt_fixup_ethernet(fdt);
+
 	_clean_d_cache_range(fdt, fdt_totalsize(fdt));
 
 fdt_update_tags_exit:
@@ -334,7 +337,11 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 	char *cmd_prefix = NULL;
 	u32 cluster_id;
 
-	strict_strtoul(env_get("fdt_addr_r"), 16, &fdt_addr);
+	if (boot_multi_cluster == 1) {
+		strict_strtoul(env_get("fdtaddr"), 16, &fdt_addr);
+	} else {
+		strict_strtoul(env_get("fdt_addr_r"), 16, &fdt_addr);
+	}
 	fdt = PTR_CAST(fdt_addr);
 	rval = fdt_update_cpux(fdt, verbose);
 	if(rval){

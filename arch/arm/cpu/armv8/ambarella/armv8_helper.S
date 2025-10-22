@@ -113,7 +113,15 @@ __switch_to_el2:
 	mov	x0, #0x3c9
 	msr	spsr_el3, x0
 
+#if defined(CONFIG_ARMV8_SWITCH_TO_EL1)
 	msr	elr_el3, x30
+#else
+	mov	x0, x28       /* dtb address */
+	mov	x1, xzr
+	mov	x2, xzr
+	mov	x3, xzr
+	msr	elr_el3, x29  /* x29 - kernel entry*/
+#endif
 	eret
 
 

@@ -728,8 +728,8 @@ int flash_init(void)
 	int ret;
 	int size = 0;
 
-	if (rct_system_boot_from() != SYS_CONFIG_BOOT_SPINOR)
-		return 0;
+//	if (rct_system_boot_from() != SYS_CONFIG_BOOT_SPINOR)
+//		return 0;
 
 	debug("begin flash_init.\n");
 	ret = uclass_get_device_by_driver(UCLASS_SPI_FLASH,

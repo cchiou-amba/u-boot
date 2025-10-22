@@ -8,6 +8,7 @@
 #include <asm/gpio.h>
 #include <asm/arch/misc.h>
 #include <linux/delay.h>
+#include <spi_flash.h>
 
 int dram_init(void)
 {
@@ -33,6 +34,45 @@ int board_init(void)
 	mdelay(10);
 	gpio_direction_output(107, 1);
 	gpio_direction_output(109, 1);
+
+	return 0;
+}
+
+#define CONFIG_BUF_SIZE (2048)
+/*
+ * Get mac address from EEPROM via R52
+*/
+static int get_mac_addr(void)
+{
+	struct spi_flash *flash;
+	uint8_t config_data[CONFIG_BUF_SIZE];
+	char mac_str[18];
+	int ret;
+
+	/* Read SPI NOR Flash */
+	flash = spi_flash_probe(0, 0, 0, 0);
+	if (!flash) {
+		printf("SPINOR flash not available\n");
+		return -1;
+	}
+
+	ret = spi_flash_read(flash, 0x0, CONFIG_BUF_SIZE, config_data);
+	if (ret < 0) {
+		printf("Failed to read SPINOR flash: %d\n", ret);
+		return ret;
+	}
+
+	//printf("Successfully read %d bytes from SPINOR flash\n", CONFIG_BUF_SIZE);
+
+	if(!eth_get_mac_from_eeprom((char *)config_data, "MAC0:", mac_str)){
+		env_set("ethaddr", mac_str);
+		printf("Set ethaddr environment variable to: %s\n", mac_str);
+	}
+
+	if(!eth_get_mac_from_eeprom((char *)config_data, "MAC1:", mac_str)){
+		env_set("eth1addr", mac_str);
+		printf("Set eth1addr environment variable to: %s\n", mac_str);
+	}
 
 	return 0;
 }
@@ -76,6 +116,7 @@ int board_late_init(void)
 	if (rval)
 		return rval;
 #endif
+	get_mac_addr();
 
 	return 0;
 }

@@ -94,7 +94,6 @@ static int amba_spinor_dma_transfer(struct ambarella_spinor *amba_spinor,
 {
 	int ret = 0;
 	u32 control = 0;
-	u32 status = 0;
 	u32 src_addr = 0;
 	u32 dst_addr = 0;
 	u32 rxtx_enable = 0;
@@ -144,7 +143,6 @@ static int amba_spinor_send_cmd(struct ambarella_spinor *amba_spinor,
 		struct spinor_ctrl *data, struct spinor_ctrl *dummy)
 {
 	u32 reg_length = 0, reg_ctrl = 0, val = 0, i = 0, done = 0;
-	int ret = 0;
 
 	/* setup basic info */
 	if (cmd != NULL) {
@@ -516,7 +514,7 @@ static int amba_spinor_read_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len
 	struct spinor_ctrl cmd, data;
 	int i, rval;
 
-	dev_dbg(amba_spinor->dev, "read_reg(%#.2x): buf:%p len:%lx\n", opcode, buf, len);
+	dev_dbg(amba_spinor->dev, "read_reg(%#.2x): buf:%p len:%d\n", opcode, buf, len);
 
 	cmd.buf = &opcode;
 	cmd.len = 1;
@@ -549,7 +547,7 @@ static int amba_spinor_write_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int le
 	struct spinor_ctrl cmd, data;
 	int rval;
 
-	dev_dbg(amba_spinor->dev, "write_reg(%#.2x): buf:%p len:%lx\n", opcode, buf, len);
+	dev_dbg(amba_spinor->dev, "write_reg(%#.2x): buf:%p len:%d\n", opcode, buf, len);
 
 	cmd.buf = &opcode;
 	cmd.len = 1;
@@ -613,7 +611,6 @@ static int ambarella_spinor_probe(struct udevice *dev)
 {
 	struct ambarella_spinor *host = dev_get_priv(dev);
 	struct spi_nor *chip = dev_get_uclass_priv(dev);
-	struct mtd_info *mtd = &chip->mtd;
 	int ret;
 
 	/* Get resources */
@@ -649,9 +646,15 @@ static int ambarella_spinor_probe(struct udevice *dev)
 	chip->write_reg = amba_spinor_write_reg;
 
 	ret = spi_nor_scan(chip);
+	if(ret)
+		goto exit1;
 
 	if(CONFIG_IS_ENABLED(SPI_FLASH_MTD)) {
 		ret = spi_flash_mtd_register(chip);
+		if (ret) {
+			printf("spi_flash_mtd_register failed: %d\n", ret);
+			goto exit1;
+		}
 		debug("spi_flash_mtd_register.\n");
 	}
 

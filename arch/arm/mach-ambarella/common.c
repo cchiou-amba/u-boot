@@ -374,7 +374,7 @@ static void env_set_clusters_mem_info(void)
 			if (env_get(jmp_addr_str) == NULL) {
 				unsigned long ram_addr     = ((unsigned long)fdt32_to_cpu(tmp[0]) << 32) | fdt32_to_cpu(tmp[1]);
 				unsigned long ram_size     = ((unsigned long)fdt32_to_cpu(tmp[2]) << 32) | fdt32_to_cpu(tmp[3]);
-				unsigned long dtb_start    = ram_addr;
+				unsigned long dtb_start    = ram_addr + SIZE_1MB;
 				unsigned long kernel_start = dtb_start + SIZE_1MB;
 				char jmp_addr_value[32] = {0};
 				char dtb_addr_value[32] = {0};

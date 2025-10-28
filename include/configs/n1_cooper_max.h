@@ -34,6 +34,11 @@
 #define CONFIG_DW_GMAC_DEFAULT_DMA_PBL  (8)
 #define CONFIG_DW_ALTDESCRIPTOR
 
+/* EEPROM */
+#define CONFIG_ID_EEPROM
+#define CONFIG_SYS_I2C_EEPROM_ADDR      0x50
+#define CONFIG_SYS_EEPROM_BUS_NUM       3
+
 /*
  *
  */

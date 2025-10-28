@@ -1,0 +1,1 @@
+obj-$(CONFIG_ID_EEPROM)	+= sys_eeprom.o

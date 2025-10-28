@@ -11,6 +11,7 @@
 #include <i2c.h>
 #include <asm/gpio.h>
 #include <asm/arch/misc.h>
+#include "../common/eeprom.h"
 
 int dram_init(void)
 {
@@ -33,14 +34,17 @@ int board_init(void)
 	/* SDMMC Power-up */
 	struct udevice *dev;
 
-	gpio_request(144,  "sdmmc0_rst");
+	gpio_request(144, "sdmmc0_rst");
 	gpio_direction_output(144, 0);
 	mdelay(10);
 	gpio_direction_output(144, 1);
 	mdelay(10);
 
+	/* TF Card */
 	i2c_get_chip_for_busnum(1, 0x0a, 1, &dev);
 	dm_i2c_reg_write(dev, 0x8c, 0x8b);
+
+	/* V110: SD Card, V120: WLAN + BT */
 	i2c_get_chip_for_busnum(0, 0x0a, 1, &dev);
 	dm_i2c_reg_write(dev, 0x8c, 0x8b);
 
@@ -95,8 +99,6 @@ static int __init_usb_gadget(void)
 	return 0;
 }
 
-#define EEPROM_BUS_ADDR 1
-#define EEPROM_DEV_ADDR 0x54
 int board_late_init(void)
 {
 	int rval;
@@ -110,14 +112,6 @@ int board_late_init(void)
 		return rval;
 	}
 
-	/* read EEPROM on I2C */
-	printf("=== Reading EEPROM on I2C ===\n");
-	rval = read_eeprom(EEPROM_BUS_ADDR, EEPROM_DEV_ADDR);
-	if (rval) {
-		printf("EEPROM read failed, continuing boot...\n");
-	}
-	printf("=== EEPROM Read Complete ===\n");
-
 	plat_r_board_late_init();
 
 #ifdef CONFIG_USB_GADGET
@@ -125,6 +119,17 @@ int board_late_init(void)
 	if (rval)
 		return rval;
 #endif
+
+	if (strcmp(get_pcba_version(), "V120") == 0) {
+		/* WLAN + BT ON */
+		gpio_request(148, "vbat");
+		gpio_request(42,  "wlreg_on");
+		gpio_request(57,  "bt_reg_on");
+		gpio_direction_output(148, 1);
+		mdelay(1);
+		gpio_direction_output(42, 1);
+		gpio_direction_output(57, 1);
+	}
 
 	return 0;
 }

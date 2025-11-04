@@ -74,6 +74,16 @@
 #define CORTEX_RVBARADDR2_REG		AXI_CFG_REG(CORTEX_RVBARADDR2_OFFSET)
 #define CORTEX_RVBARADDR3_REG		AXI_CFG_REG(CORTEX_RVBARADDR3_OFFSET)
 
+#if (CHIP_REV == S6LM) || (CHIP_REV == CV2) || (CHIP_REV == CV22) || \
+	(CHIP_REV == CV25) || (CHIP_REV == CV28) || (CHIP_REV == CV5)
+#define AMBARELLA_SUPPORT_AST 0
+#elif (CHIP_REV == N1) || (CHIP_REV == CV72) || (CHIP_REV == CV3AD685) || \
+	(CHIP_REV == CV75) || (CHIP_REV == N1_655)
+#define AMBARELLA_SUPPORT_AST 1
+#else
+#define AMBARELLA_SUPPORT_AST 2
+#endif
+
 /****************************************************/
 #ifndef __ASSEMBLY__
 /* ==========================================================================*/

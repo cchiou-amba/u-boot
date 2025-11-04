@@ -440,6 +440,9 @@ int plat_f_dram_init(void)
 	if (prop) {
 		//gd->ram_size = DRAM_SIZE;
 		gd->ram_size = ((unsigned long)fdt32_to_cpu(prop[0]) << 32) | fdt32_to_cpu(prop[1]);
+#if (AMBARELLA_SUPPORT_AST == 1)
+		gd->ram_size -= 4096;
+#endif
 		mach_mem_map[0].size = gd->ram_size;
 		return 0;
 	}

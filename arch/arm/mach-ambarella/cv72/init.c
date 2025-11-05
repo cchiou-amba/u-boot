@@ -10,6 +10,7 @@
 #include <asm/arch/soc.h>
 #include <asm/arch/misc.h>
 #include <linux/delay.h>
+#include <asm/system.h>
 
 const struct pinmux_config cv72_init_pinmux[] = {
 	/* UART APB */
@@ -29,19 +30,28 @@ void plat_f_pinmux_config(void)
 	pinmux_config_set_item(cv72_init_pinmux, sizeof(cv72_init_pinmux));
 }
 
+static void misc_pll_init(void)
+{
+	writel(0x0, CLK_SI_INPUT_MODE_REG);
+}
+
 void plat_f_soc_init(void)
 {
 	int i;
 
-	/* configure all NIC400 master port to non-secure */
-	for(i = 0; i < 63; i++)
-		writel(1, 0xfff1000000 + 8 + i * 4);
+	if (current_el() == 3) {
+		/* configure all NIC400 master port to non-secure */
+		for(i = 0; i < 63; i++)
+			writel(1, 0xfff1000000 + 8 + i * 4);
 
-	/* axi support security */
-	writel(0, 0xfff3000090);
-	writel(0, 0xfff3000094);
-	writel(0, 0xfff3000098);
-	writel(0, 0xfff30000a0);
+		/* axi support security */
+		writel(0, 0xfff3000090);
+		writel(0, 0xfff3000094);
+		writel(0, 0xfff3000098);
+		writel(0, 0xfff30000a0);
+	}
+
+	misc_pll_init();
 }
 
 void plat_r_reset_cpu(void)
@@ -53,9 +63,11 @@ void plat_r_reset_cpu(void)
 
 void cpu_secondary_init_r(void)
 {
-	writel(gd->relocaddr, 0xfff3000050);
-
-	clrbits_32(0xfff3000028, (1 << 3));
+	if (current_el() == 3) {
+		writel(gd->relocaddr, 0xfff3000050);
+		clrbits_32(0xfff3000028, (1 << 3));
+		asm volatile("sev");	/* wakeup the secondary-core in bst */
+	}
 }
 
 void plat_device_init(void)
@@ -72,23 +84,8 @@ void plat_device_init(void)
 	//mdelay(1);
 }
 
-#ifndef CONFIG_AARCH64_TRUSTZONE
 static void dram_set_arbiter(void)
 {
-#if 0
-	{
-			unsigned long shmem_base = 0xff00000000UL;
-			u32 i = 0;
-
-			for (i = 0; i < 3; i++) {
-					writeb(0x4, shmem_base + 0x1fdef + i);
-			}
-			for (i = 0; i < 32; i += 4) {
-					writel(0x10101010, shmem_base + 0x1fe60 + i);
-			}
-			printf("Reset Shared Memory Done \n");
-	}
-#endif
 	writel(0x00000509, 0xff08004000);    // 0x0000 - cortex0wr
 	writel(0x00000509, 0xff08004004);    // 0x0004 - cortex0rd
 	writel(0x0000041d, 0xff08004008);    // 0x0010 - usb3h0
@@ -128,41 +125,28 @@ static void dram_set_arbiter(void)
 	writel(0x7f7f0101, 0xff08000040);    // set cortex0wr/cortex0rd request credit to 1
 	writel(0x7f007f7f, 0xff08000048);    // set gdma request credit to 0
 }
-#else
-static void dram_set_arbiter(void)
+
+static void soc_fixup(void)
 {
-}
-#endif
+	if (current_el() == 3) {
 
-static void misc_pll_init(void)
-{
-	writel(0x0, CLK_SI_INPUT_MODE_REG);
-}
+		u32 core_freq = get_core_bus_freq_hz();
+		if (POC_PERIPHERAL_CLK_MODE) {
+			if (core_freq < 466000000)
+				setbits_32(SYS_CONFIG_REG, POC_PERIPHERAL_CLK_MODE);
+			else
+				clrbits_32(SYS_CONFIG_REG, POC_PERIPHERAL_CLK_MODE);
+		}
 
-void soc_fixup(void)
-{
-	/* ATF will set DRAM arbiter and update sysconfig if it's used */
+		if (POC_ORC_CLK_MODE) {
+			if (core_freq < 500000000)
+				clrbits_32(SYS_CONFIG_REG, POC_ORC_CLK_MODE);
+			else
+				setbits_32(SYS_CONFIG_REG, POC_ORC_CLK_MODE);
+		}
 
-#ifndef CONFIG_AARCH64_TRUSTZONE
-	u32 core_freq = get_core_bus_freq_hz();
-
-	if (POC_PERIPHERAL_CLK_MODE) {
-		if (core_freq < 466000000)
-			setbits_32(SYS_CONFIG_REG, POC_PERIPHERAL_CLK_MODE);
-		else
-			clrbits_32(SYS_CONFIG_REG, POC_PERIPHERAL_CLK_MODE);
+		dram_set_arbiter();
 	}
-
-	if (POC_ORC_CLK_MODE) {
-		if (core_freq < 500000000)
-			clrbits_32(SYS_CONFIG_REG, POC_ORC_CLK_MODE);
-		else
-			setbits_32(SYS_CONFIG_REG, POC_ORC_CLK_MODE);
-	}
-#endif
-	misc_pll_init();
-
-	dram_set_arbiter();
 }
 
 int arch_cpu_init(void)

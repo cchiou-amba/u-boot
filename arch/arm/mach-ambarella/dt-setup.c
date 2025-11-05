@@ -51,7 +51,7 @@ static inline uintptr_t get_idsp_memory_size(void)
 static int fdt_update_dram_burst_size(void *fdt)
 {
 	const char *compatible = "ambarella,ddrc";
-	u32 value, burst_size;
+	u32 burst_size;
 	int offset;
 
 	/*
@@ -62,10 +62,7 @@ static int fdt_update_dram_burst_size(void *fdt)
 	if (offset < 0)
 		return 0;
 
-	(void)value; /* avoid gcc warning "unused variable" */
-	value = readl(DRAM_REG(REG_DRAM_MODE));
-	burst_size = DRAM_BURST_SIZE(value);
-
+	burst_size = DRAM_BURST_SIZE(0);
 	return fdt_setprop_u32(fdt, offset, "burst-size", burst_size);
 }
 
@@ -172,6 +169,9 @@ void fdt_setup_att_regmap(void *fdt)
 		unsigned long phys_addr;
 		unsigned long size;
 	} regmap[8];
+
+	if (current_el() < 3)
+		return;
 
 	offset = fdt_node_offset_by_compatible(fdt, -1, compatible);
 	if (offset < 0)

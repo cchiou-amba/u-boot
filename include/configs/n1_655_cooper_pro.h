@@ -71,8 +71,12 @@
 #     define SERIAL_NUM "serial#=Ambarella N1-655\0"
 #  endif
 #endif
-#define EXTRA_ENV_COMMON_SETTINGS                               \
-    SERIAL_NUM                                                  \
+
+#ifdef CFG_AARCH64_TRUSTZONE
+/* dummy ops */
+#define RESET_SHM  "print_shm_reg=md 0x07000000\0"
+#else
+#define RESET_SHM \
     "reset_shm=mw.q 0xff0001e000 0x0505050505050505;"           \
               "mw.q 0xff0001e008 0x0505050505050505;"           \
               "mw.q 0xff0001e160 0x2020202020202020;"           \
@@ -80,19 +84,35 @@
               "mw.q 0xff0001e170 0x2020202020202020;"           \
               "mw.q 0xff0001e178 0x2020202020202020\0"          \
     "print_shm_reg=md.b 0xff0001e000 0xC;"                      \
-        "md.q 0xff0001e160 0x4\0"                               \
+        "md.q 0xff0001e160 0x4\0"
+#endif
+
+#if (CFG_DTB_LOAD_ADDR > 0)
+#define DTB_SETTINGS \
+    "fdtaddr=" __stringify(CFG_DTB_LOAD_ADDR)  "\0" \
+    "fdt_addr_r=" __stringify(CFG_DTB_LOAD_ADDR) "\0"
+#else
+#define DTB_SETTINGS \
+    "fdtaddr=0x07000000\0" \
+    "fdt_addr_r=0x07000000\0"
+#endif
+
+
+#define EXTRA_ENV_COMMON_SETTINGS                               \
+    SERIAL_NUM                                                  \
+    RESET_SHM                                                   \
+    MULTI_CLUSTER_SETTINGS                                      \
     "sd_dev_num=1\0"                                            \
     "sd_boot_part=1\0"                                          \
     "iso_dev_num=0\0"                                           \
     "iso_boot_part=1\0"                                         \
     "emmc_dev_num=0\0"                                          \
-    "fdtaddr=0x200000\0"                                        \
-    "fdt_addr_r=0x200000\0"                                     \
-    "extlinux_addr_r=0x401000\0"                                \
-    "ramdisk_addr_r=0x8000000\0"                                \
-    "kernel_addr_r=0x400000\0"                                  \
-    "kernel_comp_addr_r=0x2800000\0"                            \
-    "kernel_comp_size=0x2800000\0"                              \
+    DTB_SETTINGS                                                \
+    "extlinux_addr_r=0x02001000\0"                              \
+    "ramdisk_addr_r=0x08000000\0"                               \
+    "kernel_addr_r="__stringify(CFG_KERNEL_LOAD_ADDR) "\0"       \
+    "kernel_comp_addr_r=0x04000000\0"                            \
+    "kernel_comp_size=0x03000000\0"                              \
     MULTI_CLUSTER_SETTINGS                                      \
     "fdt_high=0xffffffffffffffff\0"                             \
     "sd_extlinux_file=/extlinux/extlinux.conf\0"                \
@@ -125,11 +145,11 @@
     "ip_arg= ip=172.20.1.1:::255.255.255.0:Ambarella:blazenet@01:off \0" \
     "boot_emmc=" EMMC_BOOTARGS                \
     "run print_shm_reg;"                      \
-    "mmc read ${kernel_addr} 0x9800 0x8000;"  \
+    "mmc read ${kernel_addr} 0x9800 0xa000;"  \
     "booti ${kernel_addr} - ${fdtaddr} \0"    \
     EXTRA_ENV_COMMON_SETTINGS                 \
     "size_start=19M\0"                        \
-    "size_kernel=16M\0"                       \
+    "size_kernel=20M\0"                       \
     "size_rootfs=512M\0"                      \
     "emmc_boot_part=1\0"                      \
     "boot_target=iso_extlinux emmc_extlinux emmc\0"

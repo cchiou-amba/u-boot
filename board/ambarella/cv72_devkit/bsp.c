@@ -22,7 +22,15 @@
 #include <asm/arch/pinmux.h>
 #include <asm/armv8/mmu.h>
 #include <asm/arch/misc.h>
+#include <asm/sections.h>
 
+__weak void plat_f_pinmux_config(void) { }
+__weak void plat_f_clk_config(void) { }
+__weak void plat_f_debug_init(void) { }
+__weak void plat_f_soc_init(void){ }
+__weak void plat_r_reset_cpu(void) { }
+__weak void plat_f_early_print_init(void) { }
+__weak void plat_device_init(void) { }
 
 int dram_init(void)
 {
@@ -36,11 +44,18 @@ int dram_init(void)
 }
 
 /*
- * board_r stage.
+ * board_r stage, place the platform hardare init here
+ * call the hardware init after mmu enable at the current stage.
+ * else mmu enable stage2 trans. but mmu_el1 no init will hang-up
+ * under the secure-boot-mode-case.
  */
 int board_init(void)
 {
-	printf("...\n");
+	plat_f_clk_config();
+	plat_f_pinmux_config();
+	plat_f_early_print_init();
+	plat_f_soc_init();
+	plat_device_init();
 
 	return 0;
 }
@@ -69,12 +84,11 @@ static int __init_usb_gadget(void)
 
 int board_late_init(void)
 {
-
 	int rval;
-	/*
-	 * Specify the device-tree for Linux kernel
-	 */
 
+#if (CFG_DTB_LOAD_ADDR > 0)
+	gd->fdt_blob = (void *)CFG_DTB_LOAD_ADDR;
+#endif
 	rval = env_set_hex("fdtaddr", (ulong)gd->fdt_blob);
 	if (rval) {
 		printf("set fdtaddr env error.\n");

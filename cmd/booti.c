@@ -15,6 +15,10 @@
 #include <linux/kernel.h>
 #include <linux/sizes.h>
 
+#if defined(CONFIG_ARCH_AMBARELLA)
+#include <asm/arch-ambarella/flexfw.h>
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 /*
  * Image booting support
@@ -47,7 +51,14 @@ static int booti_start(struct cmd_tbl *cmdtp, int flag, int argc,
 	}
 
 	temp = map_sysmem(ld, 0);
-	ctype = image_decomp_type(temp, 2);
+
+#if defined(CONFIG_ARCH_AMBARELLA)
+        if (flexible_image_handle(temp) != 0) {
+		puts("Failed Linux ARM64 Image Signature Check!\n");
+        	return -EINVAL;
+        }
+#endif
+        ctype = image_decomp_type(temp, 2);
 	if (ctype > 0) {
 		dest = env_get_ulong("kernel_comp_addr_r", 16, 0);
 		comp_len = env_get_ulong("kernel_comp_size", 16, 0);

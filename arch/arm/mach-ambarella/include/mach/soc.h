@@ -47,5 +47,4 @@
 #error("No specified Ambarella Soc")
 #endif
 
-
 #endif

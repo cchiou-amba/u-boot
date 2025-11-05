@@ -39,7 +39,7 @@
 #define SYS_CONFIG_NAND_SCKMODE		0x00040000
 #define SYS_CONFIG_NAND_4K_FIFO		0xffffffff /* not used */
 #define SYS_CONFIG_NAND_8K_FIFO		0x00080000 /* not used */
-#define SYS_CONFIG_NAND_32K_FIFO		0x00100000 /* not used */
+#define SYS_CONFIG_NAND_32K_FIFO	0x00100000 /* not used */
 #define SYS_CONFIG_NAND_PAGE_SIZE	0x00020000
 #define SYS_CONFIG_NAND_READ_CONFIRM	0xffffffff /* not used */
 #define SYS_CONFIG_NAND_ECC_BCH_EN	0x00008000
@@ -52,29 +52,32 @@
 #define SYS_CONFIG_BOOT_MASK		(0b11 << 4)
 
 #define RCT_REG(x)			(RCT_BASE + (x))
-#define SYS_CONFIG_REG                  RCT_REG(SYS_CONFIG_OFFSET)
+#define SYS_CONFIG_REG			RCT_REG(SYS_CONFIG_OFFSET)
 
-#define CLK_SI_INPUT_MODE_OFFSET      0xBC
-#define CLK_SI_INPUT_MODE_REG         RCT_REG(CLK_SI_INPUT_MODE_OFFSET)
+#define CLK_SI_INPUT_MODE_OFFSET	0xBC
+#define CLK_SI_INPUT_MODE_REG		RCT_REG(CLK_SI_INPUT_MODE_OFFSET)
 
-#define POC_PERIPHERAL_CLK_MODE         0x04000000
-#define POC_ORC_CLK_MODE                0x00000000
+#define POC_PERIPHERAL_CLK_MODE		0x04000000
+#define POC_ORC_CLK_MODE		0x00000000
 
 /* DRAM ctrl register */
-#define DRAMC_PHYS_BASE                         0xFF08000000
-#define DRAM_DRAM_OFFSET                        0x00000
-#define DRAMC_DRAM_BASE                         (DRAMC_PHYS_BASE + DRAM_DRAM_OFFSET)
-#define DRAMC_DDRC_BASE                         (DRAMC_PHYS_BASE + DRAM_DDRC_OFFSET)
+#define DRAMC_PHYS_BASE			0xFF08000000
+#define DRAM_DRAM_OFFSET		0x00000
+#define DRAMC_DRAM_BASE			(DRAMC_PHYS_BASE + DRAM_DRAM_OFFSET)
+#define DRAMC_DDRC_BASE			(DRAMC_PHYS_BASE + DRAM_DDRC_OFFSET)
+#define DRAM_REG(x)			(DRAMC_DRAM_BASE + (x))
+#define REG_DRAM_MODE			0x000
+#define DRAM_BURST_SIZE(x)		64
+#define DRAM_START_ADDR			DRAM_SPACE_START
 
-#define DRAM_REG(x)				(DRAMC_DRAM_BASE + (x))
-/* Dram registers offset*/
-#define REG_DRAM_MODE				0x000
-
-#define DRAM_BURST_SIZE(x)			64
-
-#define IDSP_RAM_START          (1ULL << 32)
-#define FRAMEBUFFER_SIZE		0
-
-#define DRAM_START_ADDR         DRAM_SPACE_START
+/* ref amboot case */
+#define SZ_MB				(1ULL << 20)
+#define IDSP_PRIVATE_SIZE_MB		1920
+#if DRAM_SIZE > (1ULL << 32)
+#define IDSP_RAM_START			(1ULL << 32)
+#else
+#define IDSP_RAM_START			(DRAM_SIZE -  IDSP_PRIVATE_SIZE_MB * SZ_MB)
+#endif
+#define FRAMEBUFFER_SIZE		(32 * SZ_MB)
 
 #endif

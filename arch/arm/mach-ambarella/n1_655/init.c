@@ -10,6 +10,7 @@
 #include <asm/arch/soc.h>
 #include <asm/arch/misc.h>
 #include <linux/delay.h>
+#include <asm/system.h>
 
 /* boot/usbstrap/n1_655/n1_655.c */
 static const struct pinmux_config init_pinmux[] = {
@@ -30,18 +31,27 @@ void plat_f_pinmux_config(void)
 	pinmux_config_set_item(init_pinmux, sizeof(init_pinmux));
 }
 
+static void misc_pll_init(void)
+{
+	writel(0x0, CLK_SI_INPUT_MODE_REG);
+}
+
 void plat_f_soc_init(void)
 {
-	/* NIC400 */
-	for (ulong i = 0; i < 64U; i++) {
-		writel(1, (0xfff1000008U + (i * 4)));
+	if (current_el() == 3) {
+		/* NIC400 */
+		for (ulong i = 0; i < 64U; i++) {
+			writel(1, (0xfff1000008U + (i * 4)));
+		}
+
+		writel(0, 0xfff30000d0);
+		writel(0, 0xfff30000d4);
+		writel(0, 0xfff30000d8);
+		writel(0, 0xfff30000dc);
+		writel(0, 0xfff30000e0);
 	}
 
-	writel(0, 0xfff30000d0);
-	writel(0, 0xfff30000d4);
-	writel(0, 0xfff30000d8);
-	writel(0, 0xfff30000dc);
-	writel(0, 0xfff30000e0);
+	misc_pll_init();
 }
 
 void plat_r_reset_cpu(void)
@@ -53,11 +63,13 @@ void plat_r_reset_cpu(void)
 
 void cpu_secondary_init_r(void)
 {
-	writel(gd->relocaddr, 0xfff3000050);
-	writel(gd->relocaddr, 0xfff3000058);
-	writel(gd->relocaddr, 0xfff3000060);
+	if (current_el() == 3) {
+		writel(gd->relocaddr, 0xfff3000050);
+		writel(gd->relocaddr, 0xfff3000058);
+		writel(gd->relocaddr, 0xfff3000060);
 
-	clrbits_32(0xfff3000028,  (1 << 3) | (1 << 4) | (1 << 5));
+		clrbits_32(0xfff3000028,  (1 << 3) | (1 << 4) | (1 << 5));
+	}
 }
 
 void plat_device_init(void)
@@ -127,11 +139,6 @@ static void dram_set_arbiter(void)
 					    // post_grant_opp_req_type_throttle_cycles = 0
 }
 
-static void misc_pll_init(void)
-{
-	writel(0x0, CLK_SI_INPUT_MODE_REG);
-}
-
 static void shm_setup(void)
 {
 	unsigned long shmem_base = 0xff00000000UL;
@@ -146,23 +153,19 @@ static void shm_setup(void)
 
 void soc_fixup(void)
 {
-	/* ATF will set DRAM arbiter and update sysconfig if it's used */
+	if (current_el() == 3) {
+		u32 core_freq = get_core_bus_freq_hz();
 
-#ifndef CONFIG_AARCH64_TRUSTZONE
-	u32 core_freq = get_core_bus_freq_hz();
+		if (POC_PERIPHERAL_CLK_MODE) {
+			if (core_freq < 466000000)
+				setbits_32(SYS_CONFIG_REG, POC_PERIPHERAL_CLK_MODE);
+			else
+				clrbits_32(SYS_CONFIG_REG, POC_PERIPHERAL_CLK_MODE);
+		}
 
-	if (POC_PERIPHERAL_CLK_MODE) {
-		if (core_freq < 466000000)
-			setbits_32(SYS_CONFIG_REG, POC_PERIPHERAL_CLK_MODE);
-		else
-			clrbits_32(SYS_CONFIG_REG, POC_PERIPHERAL_CLK_MODE);
+		dram_set_arbiter();
+		shm_setup();
 	}
-
-	dram_set_arbiter();
-#endif
-
-	misc_pll_init();
-	shm_setup();
 }
 
 int arch_cpu_init(void)

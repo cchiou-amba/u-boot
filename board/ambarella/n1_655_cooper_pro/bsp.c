@@ -10,6 +10,14 @@
 #include <asm/arch/misc.h>
 #include <linux/delay.h>
 
+__weak void plat_f_pinmux_config(void) { }
+__weak void plat_f_clk_config(void) { }
+__weak void plat_f_debug_init(void) { }
+__weak void plat_f_soc_init(void){ }
+__weak void plat_r_reset_cpu(void) { }
+__weak void plat_f_early_print_init(void) { }
+__weak void plat_device_init(void) { }
+
 int dram_init(void)
 {
 	int rval;
@@ -115,6 +123,12 @@ int board_init(void)
 {
 	int i, poc_gpio[4] = {92, 93, 98, 99};
 	char buf[16];
+
+	plat_f_clk_config();
+	plat_f_pinmux_config();
+	plat_f_early_print_init();
+	plat_f_soc_init();
+	plat_device_init();
 
 	/* PWR_POC */
 	for (i = 0; i < 4; i++) {

@@ -372,8 +372,14 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 		update_os_arch_secondary_cores(images->os.arch);
 
 #ifdef CONFIG_ARMV8_SWITCH_TO_EL1
-		armv8_switch_to_el2((u64)images->ft_addr, 0, 0, 0,
+		printf("boot kernel from current_el=>%u \n", current_el());
+		if (current_el() >= 2) {
+			armv8_switch_to_el2((u64)images->ft_addr, 0, 0, 0,
 				    (u64)switch_to_el1, ES_TO_AARCH64);
+		}
+		else {
+			kernel_entry(images->ft_addr, NULL, NULL, NULL);
+		}
 #else
 		if ((IH_ARCH_DEFAULT == IH_ARCH_ARM64) &&
 		    (images->os.arch == IH_ARCH_ARM))

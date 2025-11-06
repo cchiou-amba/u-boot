@@ -683,6 +683,8 @@ int do_size(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[],
 	return 0;
 }
 
+extern int auth_verify_image(void *image, unsigned long imglen);
+
 int do_load(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[],
 	    int fstype)
 {
@@ -739,6 +741,15 @@ int do_load(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[],
 	if (ret < 0) {
 		printf("Failed to load '%s'\n", filename);
 		return 1;
+	}
+	if (strstr(filename, "vmlinuz") != NULL) {
+		printf("\033[31m --->This is Kernel<----- \033[0m\n");
+		auth_verify_image((void *)addr, len_read);
+	}
+
+	if (strstr(filename, "dtb") != NULL) {
+		printf("\033[31m --->This is DTB<----- \033[0m\n");
+		auth_verify_image((void *)addr, len_read);
 	}
 
 	if (IS_ENABLED(CONFIG_CMD_BOOTEFI))

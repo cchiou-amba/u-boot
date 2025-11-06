@@ -5,10 +5,16 @@
 #include <common.h>
 #include <env.h>
 #include <dm/device.h>
+#include <asm/io.h>
+#include <asm/sections.h>
+#include <asm/system.h>
 #include <asm/armv8/mmu.h>
 #include <asm/arch/soc.h>
 #include <asm/arch/misc.h>
 #include <asm/arch/cortex.h>
+#include <asm/arch-ambarella/flexfw.h>
+#include <asm/arch-ambarella/key_alg.h>
+#include <asm/arch-ambarella/scratchpad.h>
 
 #include <i2c.h>
 #include <dm/uclass.h>
@@ -17,12 +23,23 @@
 #include <fdt_support.h>
 #include <linux/libfdt.h>
 #include <linux/delay.h>
+#include <linux/string.h>
 
+extern void _clean_d_cache(void);
+extern void _clean_d_cache_range(void *addr, unsigned int size);
 
 static const char *u_boot_cfg = "/u-boot_cfg";
 #if defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
 static const char *clusters_mem = "/memory";
 #endif
+
+__weak void plat_f_pinmux_config(void) { }
+__weak void plat_f_clk_config(void) { }
+__weak void plat_f_debug_init(void) { }
+__weak void plat_f_soc_init(void){ }
+__weak void plat_r_reset_cpu(void) { }
+__weak void plat_f_early_print_init(void) { }
+__weak void plat_device_init(void) { }
 
 #ifdef CONFIG_DM_I2C
 static void check_i2c_config(void)
@@ -450,18 +467,6 @@ int plat_f_dram_init(void)
 	return -1;
 }
 
-/*
- *
- */
-
-__weak void plat_f_pinmux_config(void) { }
-__weak void plat_f_clk_config(void) { }
-__weak void plat_f_debug_init(void) { }
-__weak void plat_f_soc_init(void){ }
-__weak void plat_r_reset_cpu(void) { }
-__weak void plat_f_early_print_init(void) { }
-__weak void plat_device_init(void) { }
-
 void plat_r_board_late_init(void)
 {
 	env_set_poc_info();
@@ -470,7 +475,6 @@ void plat_r_board_late_init(void)
 	env_set_clusters_mem_info();
 #endif
 }
-
 
 void reset_cpu(ulong addr)
 {
@@ -483,20 +487,72 @@ void reset_cpu(ulong addr)
 int dram_init_banksize(void)
 {
 #if defined(CONFIG_NR_DRAM_BANKS)
-	gd->bd->bi_dram[0].start = 0;
-	gd->bd->bi_dram[0].size = gd->ram_size;
+	unsigned long kernel_addr = 0;
+	const char *kernel_addr_str = env_get("kernel_addr_r");
+
+	if (kernel_addr_str != NULL)
+		kernel_addr = simple_strtoull(kernel_addr_str, NULL, 16);
+
+#if defined(CFG_AARCH64_TRUSTZONE)
+	if (kernel_addr == 0) {
+		__asm__ volatile("b .");
+	}
+#endif
+	/* the memory u-boot can pass to kernel */
+	gd->bd->bi_dram[0].start = kernel_addr;
+	gd->bd->bi_dram[0].size = gd->ram_size - kernel_addr;
 #endif
 	return 0;
 }
 
 int board_early_init_f(void)
 {
-	plat_f_clk_config();
-	plat_f_pinmux_config();
-	plat_f_soc_init();
-	plat_f_early_print_init();
-
-	plat_device_init();
-
 	return 0;
+}
+
+int ambarella_is_secure_boot(void)
+{
+#if defined(AMBARELLA_CV2)
+	return !!(readl(RCT_REG(SYS_CONFIG_OFFSET)) & SYS_CONFIG_SECURE_BOOT);
+#else
+	return (readl(SECSP_BOOT_STS_REG) & 1);
+#endif
+}
+
+int flexible_image_handle(void *buf)
+{
+	uint32_t bin_length = 0;
+	uint32_t bin_offset = 0;
+	struct fw_image_header *img_hdr = buf;
+
+	if (img_hdr->magic != IMAGE_HEADER_MAGIC) {
+		return 0;
+	}
+
+	/* flexible format: use the first one ?? */
+	bin_length = img_hdr->bin[0].bin_length;
+	bin_offset = img_hdr->bin[0].bin_offset;
+	memmove(buf, buf + bin_offset, bin_length);
+	_clean_d_cache_range(buf, bin_length);
+
+	/* verify image if possible */
+	return auth_verify_image(buf, bin_length);
+}
+
+void board_cleanup_before_linux(void)
+{
+	_clean_d_cache();
+}
+
+void *board_fdt_blob_setup(void)
+{
+	void *fdt_blob = NULL;
+
+#if (CFG_DTB_LOAD_ADDR > 0)
+	fdt_blob = (void *)CFG_DTB_LOAD_ADDR;
+#else
+	/* FDT is at end of image */
+	fdt_blob = (ulong *)&_end;
+#endif
+	return fdt_blob;
 }

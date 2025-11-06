@@ -22,7 +22,15 @@
 #include <asm/arch/pinmux.h>
 #include <asm/armv8/mmu.h>
 #include <asm/arch/misc.h>
+#include <asm/sections.h>
 
+__weak void plat_f_pinmux_config(void) { }
+__weak void plat_f_clk_config(void) { }
+__weak void plat_f_debug_init(void) { }
+__weak void plat_f_soc_init(void){ }
+__weak void plat_r_reset_cpu(void) { }
+__weak void plat_f_early_print_init(void) { }
+__weak void plat_device_init(void) { }
 
 int dram_init(void)
 {
@@ -37,10 +45,16 @@ int dram_init(void)
 
 /*
  * board_r stage.
+ * in case secure-boot, can only call plat_f_xx after mmu-el1 init done
+ * else hang-up. [due to two-stage-mmu-translation]
  */
 int board_init(void)
 {
-	printf("...\n");
+	plat_f_clk_config();
+	plat_f_pinmux_config();
+	plat_f_early_print_init();
+	plat_f_soc_init();
+	plat_device_init();
 
 	return 0;
 }
@@ -76,6 +90,9 @@ int board_late_init(void)
 	/*
 	 * Specify the device-tree for Linux kernel
 	 */
+#if (CFG_DTB_LOAD_ADDR > 0)
+	gd->fdt_blob = (void *)CFG_DTB_LOAD_ADDR;
+#endif
 	rval = env_set_hex("fdtaddr", (ulong)gd->fdt_blob);
 	if (rval) {
 		printf("set fdtaddr env error.\n");
@@ -84,6 +101,7 @@ int board_late_init(void)
 
 	plat_r_board_late_init();
 
+#if 0	/* secure boot failed, read eeprom cause sync abort, access memory at 0x0 */
 	/* read EEPROM on I2C */
 	printf("=== Reading EEPROM on I2C ===\n");
 	rval = read_eeprom(EEPROM_BUS_ADDR, EEPROM_DEV_ADDR);
@@ -91,6 +109,7 @@ int board_late_init(void)
 		printf("EEPROM read failed, continuing boot...\n");
 	}
 	printf("=== EEPROM Read Complete ===\n");
+#endif
 
 #ifdef CONFIG_USB_GADGET
 	rval = __init_usb_gadget();

@@ -507,6 +507,14 @@ int dram_init_banksize(void)
 
 int board_early_init_f(void)
 {
+	if (current_el() == 3) {
+		plat_f_clk_config();
+		plat_f_pinmux_config();
+		plat_f_soc_init();
+		plat_f_early_print_init();
+		plat_device_init();
+	}
+
 	return 0;
 }
 

@@ -23,6 +23,7 @@
 #include <asm/armv8/mmu.h>
 #include <asm/arch/misc.h>
 #include <asm/sections.h>
+#include <asm/system.h>
 
 __weak void plat_f_pinmux_config(void) { }
 __weak void plat_f_clk_config(void) { }
@@ -50,11 +51,13 @@ int dram_init(void)
  */
 int board_init(void)
 {
-	plat_f_clk_config();
-	plat_f_pinmux_config();
-	plat_f_early_print_init();
-	plat_f_soc_init();
-	plat_device_init();
+	if (current_el() != 3) {
+		plat_f_clk_config();
+		plat_f_pinmux_config();
+		plat_f_early_print_init();
+		plat_f_soc_init();
+		plat_device_init();
+	}
 
 	return 0;
 }

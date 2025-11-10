@@ -499,8 +499,8 @@ int dram_init_banksize(void)
 	}
 #endif
 	/* the memory u-boot can pass to kernel */
-	gd->bd->bi_dram[0].start = kernel_addr;
-	gd->bd->bi_dram[0].size = gd->ram_size - kernel_addr;
+	gd->bd->bi_dram[0].start = CONFIG_SYS_TEXT_BASE;
+	gd->bd->bi_dram[0].size = gd->ram_size - CONFIG_SYS_TEXT_BASE;
 #endif
 	return 0;
 }

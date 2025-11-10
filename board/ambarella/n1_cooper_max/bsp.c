@@ -29,11 +29,9 @@ int dram_init(void)
  */
 int board_init(void)
 {
-	printf("...\n");
-
-	/* SDMMC Power-up */
 	struct udevice *dev;
 
+	/* SDMMC Power-up */
 	gpio_request(144, "sdmmc0_rst");
 	gpio_direction_output(144, 0);
 	mdelay(10);
@@ -121,6 +119,10 @@ int board_late_init(void)
 #endif
 
 	if (strcmp(get_pcba_version(), "V120") == 0) {
+		/* Power-off GPIO active low, default high */
+		gpio_request(14, "poweroff");
+		gpio_direction_output(14, 1);
+
 		/* WLAN + BT ON */
 		gpio_request(148, "vbat");
 		gpio_request(42,  "wlreg_on");

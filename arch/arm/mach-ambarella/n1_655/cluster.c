@@ -39,6 +39,7 @@
 #include <linux/bug.h>
 #include <asm/system.h>
 #include <fdt_support.h>
+#include <asm/arch-ambarella/scratchpad.h>
 
 #define PTR_CAST(x)              ((void *)(unsigned long)(x))
 

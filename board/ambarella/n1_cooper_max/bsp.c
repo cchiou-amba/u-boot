@@ -122,15 +122,6 @@ int board_late_init(void)
 		/* Power-off GPIO active low, default high */
 		gpio_request(14, "poweroff");
 		gpio_direction_output(14, 1);
-
-		/* WLAN + BT ON */
-		gpio_request(148, "vbat");
-		gpio_request(42,  "wlreg_on");
-		gpio_request(57,  "bt_reg_on");
-		gpio_direction_output(148, 1);
-		mdelay(1);
-		gpio_direction_output(42, 1);
-		gpio_direction_output(57, 1);
 	}
 
 	return 0;

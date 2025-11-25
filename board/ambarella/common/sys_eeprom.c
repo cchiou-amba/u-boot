@@ -7,13 +7,18 @@
 
 static struct eeprom {
 	char pcba_ver[5]; /* PCBA_Version */
-} e;
+} e = {0};
 
 static int has_been_read = 0;
 
 char *get_pcba_version(void)
 {
 	return e.pcba_ver;
+}
+
+static void show_eeprom(void)
+{
+	printf("PCBA_VERSION: %s\n", e.pcba_ver);
 }
 
 #define EEPROM_SIZE	(2048)
@@ -41,7 +46,7 @@ static int read_eeprom(void)
 		ret = sscanf(p, "%[^:]: %[^\r\n]%n", key, value, &n);
 		if (ret == 2) {
 			if (strcmp(key, "PCBA_Version") == 0) {
-				strcpy(e.pcba_ver, value);
+				strncpy(e.pcba_ver, value, sizeof(e.pcba_ver) - 1);
 			} else if (strcmp(key, "MAC0") == 0) {
 				env_set("ethaddr", value);
 			} else if (strcmp(key, "MAC1") == 0) {
@@ -72,7 +77,10 @@ int mac_read_from_eeprom(void)
 
 int do_mac(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 {
-	printf("Not supported\n");
+	if (argc == 1) {
+		show_eeprom();
+		return 0;
+	}
 
 	return 0;
 }

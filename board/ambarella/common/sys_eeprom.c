@@ -7,6 +7,7 @@
 
 static struct eeprom {
 	char pcba_ver[5]; /* PCBA_Version */
+	char lot_nr[12];  /* LOT_NUMBER */
 } e = {0};
 
 static int has_been_read = 0;
@@ -19,6 +20,7 @@ char *get_pcba_version(void)
 static void show_eeprom(void)
 {
 	printf("PCBA_VERSION: %s\n", e.pcba_ver);
+	printf("LOT_NUMBER: %s\n", e.lot_nr);
 }
 
 #define EEPROM_SIZE	(2048)
@@ -47,6 +49,8 @@ static int read_eeprom(void)
 		if (ret == 2) {
 			if (strcmp(key, "PCBA_Version") == 0) {
 				strncpy(e.pcba_ver, value, sizeof(e.pcba_ver) - 1);
+			} else if (strcmp(key, "LOT_NUMBER") == 0) {
+				strncpy(e.lot_nr, value, sizeof(e.lot_nr) - 1);
 			} else if (strcmp(key, "MAC0") == 0) {
 				env_set("ethaddr", value);
 			} else if (strcmp(key, "MAC1") == 0) {

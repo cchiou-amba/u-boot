@@ -118,7 +118,7 @@ int board_late_init(void)
 		return rval;
 #endif
 
-	if (strcmp(get_pcba_version(), "V120") == 0) {
+	if (strcmp(get_pcba_version(), "v120") == 0) {
 		/* Power-off GPIO active low, default high */
 		gpio_request(14, "poweroff");
 		gpio_direction_output(14, 1);

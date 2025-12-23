@@ -34,6 +34,9 @@
 #define CONFIG_DW_GMAC_DEFAULT_DMA_PBL  (8)
 #define CONFIG_DW_ALTDESCRIPTOR
 
+/* EEPROM */
+#define CONFIG_ID_EEPROM
+
 /*
  *
  */
@@ -60,16 +63,6 @@
     "emmc_init_cluster1_dtb=mmc read ${cluster_1_dtb_addr} 0x5800 0x800\0"
 #else
 #define MULTI_CLUSTER_SETTINGS
-#endif
-
-#ifdef CONFIG_BOARD_N1_655_V110
-#  define SERIAL_NUM "serial#=Ambarella N1-655 v110\0"
-#else
-#  ifdef CONFIG_BOARD_N1_655_V100
-#     define SERIAL_NUM "serial#=Ambarella N1-655 v100\0"
-#   else
-#     define SERIAL_NUM "serial#=Ambarella N1-655\0"
-#  endif
 #endif
 
 #ifdef CFG_AARCH64_TRUSTZONE
@@ -99,7 +92,6 @@
 
 
 #define EXTRA_ENV_COMMON_SETTINGS                               \
-    SERIAL_NUM                                                  \
     RESET_SHM                                                   \
     MULTI_CLUSTER_SETTINGS                                      \
     "sd_dev_num=1\0"                                            \

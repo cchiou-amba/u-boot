@@ -10,6 +10,7 @@
 #include <asm/arch/misc.h>
 #include <linux/delay.h>
 #include <asm/system.h>
+#include "../common/eeprom.h"
 
 __weak void plat_f_pinmux_config(void) { }
 __weak void plat_f_clk_config(void) { }
@@ -95,28 +96,11 @@ static int read_shared_memory_data(void *buffer, size_t size)
 /*
  * Get mac address from EEPROM via R52
 */
-static int get_mac_addr(void)
+int __read_eeprom(void *buffer, int size)
 {
-	uint8_t eeprom_data[EEPROM_SIZE];
-	char mac_str[18];
-	int ret;
-
-	ret = read_shared_memory_data(eeprom_data, sizeof(eeprom_data));
-	if (ret)
-		printf("Get mac address failed \n");
-	else {
-		if(!eth_get_mac_from_eeprom((char *)eeprom_data, "MAC0:", mac_str)){
-			env_set("ethaddr", mac_str);
-			printf("Set ethaddr environment variable to: %s\n", mac_str);
-		}
-
-		if(!eth_get_mac_from_eeprom((char *)eeprom_data, "MAC1:", mac_str)){
-			env_set("eth1addr", mac_str);
-			printf("Set eth1ddr environment variable to: %s\n", mac_str);
-		}
-	}
-	return ret;
+	return read_shared_memory_data(buffer, size);
 }
+
 /*
  * board_r stage.
  */
@@ -203,7 +187,6 @@ int board_late_init(void)
 	if (rval)
 		return rval;
 #endif
-	get_mac_addr();
 
 	return 0;
 }

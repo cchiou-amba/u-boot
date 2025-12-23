@@ -6,8 +6,10 @@
 #include "eeprom.h"
 
 static struct eeprom {
-	char pcba_ver[5]; /* PCBA_Version */
-	char lot_nr[12];  /* LOT_NUMBER */
+	char soc[16];		/* PCBA_NICK_NAME[0] */
+	char board[16];		/* PCBA_NICK_NAME[1] */
+	char pcba_ver[5];	/* PCBA_Version */
+	char lot_nr[12];	/* LOT_NUMBER */
 } e = {0};
 
 static int has_been_read = 0;
@@ -19,8 +21,32 @@ char *get_pcba_version(void)
 
 static void show_eeprom(void)
 {
+	printf("PCBA_NICK_NAME: %s %s\n", e.soc, e.board);
 	printf("PCBA_VERSION: %s\n", e.pcba_ver);
 	printf("LOT_NUMBER: %s\n", e.lot_nr);
+}
+
+#ifndef CONFIG_SYS_EEPROM_BUS_NUM
+#define CONFIG_SYS_EEPROM_BUS_NUM	0xff
+#endif
+#ifndef CONFIG_SYS_I2C_EEPROM_ADDR
+#define CONFIG_SYS_I2C_EEPROM_ADDR	0xff
+#endif
+__attribute__((weak)) int __read_eeprom(void *buffer, int size)
+{
+	struct udevice *dev;
+	int ret;
+
+	ret = i2c_get_chip_for_busnum(CONFIG_SYS_EEPROM_BUS_NUM,
+		CONFIG_SYS_I2C_EEPROM_ADDR, 2, &dev);
+
+	if (!ret) {
+		for (int i = 0; i < size; i += 512) {
+			ret |= dm_i2c_read(dev, i, buffer + i, 512);
+		}
+	}
+
+	return ret;
 }
 
 #define EEPROM_SIZE	(2048)
@@ -28,27 +54,25 @@ static int read_eeprom(void)
 {
 	char data[EEPROM_SIZE] = {0};
 	char *p = data;
-	struct udevice *dev;
 	char key[32], value[48];
 	int n, ret;
 
 	if (has_been_read)
 		return 0;
 
-	ret = i2c_get_chip_for_busnum(CONFIG_SYS_EEPROM_BUS_NUM,
-				      CONFIG_SYS_I2C_EEPROM_ADDR, 2, &dev);
+	ret = __read_eeprom(data, sizeof(data));
 
-	if (!ret) {
-		for (int i = 0; i < sizeof(data); i += 32)
-			ret = dm_i2c_read(dev, i, (void *)(data + i), 32);
-	}
 	has_been_read = (ret == 0) ? 1 : 0;
 
 	while (*p) {
 		ret = sscanf(p, "%[^:]: %[^\r\n]%n", key, value, &n);
 		if (ret == 2) {
-			if (strcmp(key, "PCBA_Version") == 0) {
+			if (strcmp(key, "PCBA_NICK_NAME") == 0) {
+				sscanf(value, "%15s %15[^\0]", e.soc, e.board);
+				if (strcmp(e.soc, "N1655") == 0) strncpy(e.soc, "N1-655", sizeof(e.soc) - 1);
+			} else if (strcmp(key, "PCBA_Version") == 0) {
 				strncpy(e.pcba_ver, value, sizeof(e.pcba_ver) - 1);
+				if (e.pcba_ver[0] == 'V') e.pcba_ver[0] = 'v';
 			} else if (strcmp(key, "LOT_NUMBER") == 0) {
 				strncpy(e.lot_nr, value, sizeof(e.lot_nr) - 1);
 			} else if (strcmp(key, "MAC0") == 0) {
@@ -72,9 +96,15 @@ static int read_eeprom(void)
 
 int mac_read_from_eeprom(void)
 {
+	char serial_num[48];
+
 	if (read_eeprom()) {
 		printf("EEPROM read failed, continue booting...\n");
 	}
+
+	/* serial#=Ambarella N1-655 v110 H1234567890 */
+	sprintf(serial_num, "Ambarella %s %s %s", e.soc, e.pcba_ver, e.lot_nr);
+	env_set("serial#", serial_num);
 
 	return 0;
 }

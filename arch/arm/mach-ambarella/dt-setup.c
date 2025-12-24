@@ -14,6 +14,7 @@
 
 #include <fdt.h>
 #include <linux/libfdt.h>
+#include <asm/system.h>
 
 //#include <config.h>
 #if 0

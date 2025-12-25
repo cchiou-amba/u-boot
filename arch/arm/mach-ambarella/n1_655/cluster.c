@@ -40,11 +40,21 @@
 #include <asm/system.h>
 #include <fdt_support.h>
 #include <asm/arch-ambarella/scratchpad.h>
+#include <asm/arch-ambarella/boot_cookie.h>
 
 #define PTR_CAST(x)              ((void *)(unsigned long)(x))
 
 extern void _clean_d_cache_range(void *addr, unsigned int size);
 extern void _clean_flush_all_cache(void);
+extern void jump_to_kernel(uintptr_t kernelp, uintptr_t dtbp);
+
+enum {
+	BOOT_ERR_MAGIC,
+	BOOT_ERR_KERNEL,
+	BOOT_ERR_DTB,
+	BOOT_ERR_RMD,
+	BOOT_ERR_UPDATE,
+};
 
 /* cluster0 has its own stack */
 u8 cluster_stack[CORTEX_CLUSTER_NUM - 1][CORTEX_CLUSTER_STACK_SIZE]
@@ -181,8 +191,12 @@ static int fdt_update_cluster_cpux(void *fdt, u32 cluster_id, int verbose)
 	return rval;
 }
 
-static int fdt_update_cluster_tags(u32 cluster_id, uintptr_t jump_addr,
-	uintptr_t initrd2_start, uintptr_t initrd2_size, int verbose)
+__attribute__((__unused__))
+static int fdt_update_cluster_tags(u32 cluster_id,
+				   uintptr_t jump_addr,
+				   uintptr_t initrd2_start,
+				   uintptr_t initrd2_size,
+				   int verbose)
 {
 	uintptr_t kernelp, kernels = 0UL, fdt_addr = 0UL;
 	void *fdt;
@@ -331,11 +345,10 @@ void wait_second_cluster_image_load_done(u32 cluster_id)
 
 int boot_cluster(int boot_multi_cluster, int verbose)
 {
-	uintptr_t jump_addr = 0, fdt_addr = 0, rmd_start = 0, rmd_size = 0;
 	int rval;
 	void* fdt;
+	uintptr_t fdt_addr = 0;
 	char *cmd_prefix = NULL;
-	u32 cluster_id;
 
 	if (boot_multi_cluster == 1) {
 		strict_strtoul(env_get("fdtaddr"), 16, &fdt_addr);
@@ -364,12 +377,19 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 		return rval;
 	}
 
-	for (cluster_id = 1; cluster_id < CORTEX_CLUSTER_NUM; cluster_id++) {
-		char load_cluster_img_cmd[64] = {0};
-		char load_cluster_dtb_cmd[64] = {0};
-		sprintf(load_cluster_img_cmd, "%sinit_cluster%d_image", cmd_prefix, cluster_id);
-		sprintf(load_cluster_dtb_cmd, "%sinit_cluster%d_dtb", cmd_prefix, cluster_id);
-		switch(cluster_id) {
+	if (current_el() != 3)
+		return 0;
+
+#if !defined(CONFIG_AMBA_DEFERRED_BOOT_SECONDARY_CLUSTER)
+	{
+		u32 cluster_id;
+		uintptr_t jump_addr = 0, rmd_start = 0, rmd_size = 0;
+		for (cluster_id = 1; cluster_id < CORTEX_CLUSTER_NUM; cluster_id++) {
+			char load_cluster_img_cmd[64] = {0};
+			char load_cluster_dtb_cmd[64] = {0};
+			sprintf(load_cluster_img_cmd, "%sinit_cluster%d_image", cmd_prefix, cluster_id);
+			sprintf(load_cluster_dtb_cmd, "%sinit_cluster%d_dtb", cmd_prefix, cluster_id);
+			switch(cluster_id) {
 			case 1:
 			case 2:
 			case 3: {
@@ -383,42 +403,110 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 			default:
 				printf("Wrong cluster ID: %u\n", cluster_id);
 				BUG();
-			break;
+				break;
+			}
+
+			printf("Boot cluster %d...\n",cluster_id);
+			writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR0_REG + (cluster_id << 5));
+			writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR0_REG + 4 + (cluster_id << 5));
+
+			writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR1_REG + (cluster_id << 5));
+			writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR1_REG + 4 + (cluster_id << 5));
+
+			writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR2_REG + (cluster_id << 5));
+			writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR2_REG + 4 + (cluster_id << 5));
+
+			writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR3_REG + (cluster_id << 5));
+			writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR3_REG + 4 + (cluster_id << 5));
+
+			clrbits_32(CORTEX_RESET_REG, CORTEX_RESET_MASK(cluster_id));
+
+			wait_second_cluster_invalid_dcache_done(cluster_id);
+			secondary_cortex_jump[cluster_id * CORTEX_CORE_MAX_NUM + 0] = jump_addr;
+			_clean_d_cache_range(secondary_cortex_jump + cluster_id * CORTEX_CORE_MAX_NUM,
+					     sizeof(uintptr_t));
+			printf("Cluster%d loading    DTB to 0x%lx: ", cluster_id, fdt_addr);
+			run_command(env_get(load_cluster_dtb_cmd), 0);
+
+			printf("Cluster%d loading Kernel to 0x%lx: ", cluster_id, jump_addr);
+			run_command(env_get(load_cluster_img_cmd), 0);
+
+			rval = fdt_update_cluster_tags(cluster_id, jump_addr, rmd_start, rmd_size, verbose);
+			if (rval < 0) {
+				printf("Failed to update cluster%d FDT\n", cluster_id);
+				return rval;
+			}
+			_clean_flush_all_cache();
+			second_cluster_image_load_notify(cluster_id);
 		}
-
-		printf("Boot cluster %d...\n",cluster_id);
-		writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR0_REG + (cluster_id << 5));
-		writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR0_REG + 4 + (cluster_id << 5));
-
-		writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR1_REG + (cluster_id << 5));
-		writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR1_REG + 4 + (cluster_id << 5));
-
-		writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR2_REG + (cluster_id << 5));
-		writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR2_REG + 4 + (cluster_id << 5));
-
-		writel((u32)(gd->relocaddr & 0xffffffffU), CORTEX_RVBARADDR3_REG + (cluster_id << 5));
-		writel((u32)((gd->relocaddr >> 32) & 0xffU), CORTEX_RVBARADDR3_REG + 4 + (cluster_id << 5));
-
-		clrbits_32(CORTEX_RESET_REG, CORTEX_RESET_MASK(cluster_id));
-
-		wait_second_cluster_invalid_dcache_done(cluster_id);
-		secondary_cortex_jump[cluster_id * CORTEX_CORE_MAX_NUM + 0] = jump_addr;
-		_clean_d_cache_range(secondary_cortex_jump + cluster_id * CORTEX_CORE_MAX_NUM,
-												 sizeof(uintptr_t));
-		printf("Cluster%d loading    DTB to 0x%lx: ", cluster_id, fdt_addr);
-		run_command(env_get(load_cluster_dtb_cmd), 0);
-
-		printf("Cluster%d loading Kernel to 0x%lx: ", cluster_id, jump_addr);
-		run_command(env_get(load_cluster_img_cmd), 0);
-
-		rval = fdt_update_cluster_tags(cluster_id, jump_addr, rmd_start, rmd_size, verbose);
-		if (rval < 0) {
-			printf("Failed to update cluster%d FDT\n", cluster_id);
-			return rval;
-		}
-		_clean_flush_all_cache();
-		second_cluster_image_load_notify(cluster_id);
 	}
+#endif
 
 	return 0;
+}
+
+
+__attribute__((__unused__))
+static boot_cookie_t *cluster_boot_cookie(void)
+{
+	uintptr_t data3 = readl(AHBSP_DATA3_REG);
+	boot_cookie_t *cookie = (boot_cookie_t *)(data3 << 8);
+
+	if (!cookie || cookie->magic != BOOT_COOKIE_MAGIC_NUM)
+		return NULL;
+
+	/* clear to ensure get a correct value during next cluster booting */
+	writel(0, AHBSP_DATA3_REG);
+
+	return cookie;
+}
+
+__attribute__((__unused__))
+static void cluster_die(u32 err)
+{
+	__asm__ volatile("mov	x0, %0"
+			 :
+			 :"r"(err)
+			 : "memory");
+	__asm__ volatile("b	.");
+}
+
+void deferred_boot_cluster(u32 id)
+{
+#if defined(CONFIG_AMBA_DEFERRED_BOOT_SECONDARY_CLUSTER)
+	int verbose = 0;
+	u32 err = id << 8;
+	u64 kernelp, dtbp;
+	boot_cookie_t *cookie;
+
+	/* Enter in WFE state, waken up by programming AXI register */
+	__asm__ volatile("wfe");
+
+	do {
+		cookie = (boot_cookie_t *)cluster_boot_cookie();
+		if (cookie->magic != BOOT_COOKIE_MAGIC_NUM) {
+			err |= BOOT_ERR_MAGIC;
+			break;
+		}
+		kernelp = cookie->bld_ram_start | (u64)cookie->bld_ram_start_hi << 32;
+		dtbp = cookie->dtb_ram_start | (u64)cookie->dtb_ram_start_hi << 32;
+
+		if (!kernelp) {
+			err |= BOOT_ERR_KERNEL;
+			break;
+		}
+		if (!dtbp) {
+			err |= BOOT_ERR_DTB;
+			break;
+		}
+		fdt_fixup_ethernet((void *)dtbp);
+		if (fdt_update_cluster_cpux((void *)dtbp, id, verbose) < 0) {
+			err |= BOOT_ERR_UPDATE;
+			break;
+		}
+		jump_to_kernel(kernelp, dtbp);
+	} while(0);
+
+	cluster_die((id << 8) | err);
+#endif
 }

@@ -196,12 +196,17 @@ master_cpu:
 	mov	x1, #CORTEX_CLUSTER_STACK_SIZE
 	madd	x1, x28, x1, x2
 	mov	sp, x1			/* secondary cluster's stack */
-	sub	x0,	x1, #CORTEX_CLUSTER_STACK_SIZE
+	sub	x0, x1, #CORTEX_CLUSTER_STACK_SIZE
 
+#if 0	/* NEED? it's stack, right? */
 1:	str	xzr, [x0] /* clear second-cluster-bss */
 	add	x0, x0, #0x8
 	cmp	x0, x1
 	b.lo	1b
+#endif
+	bl	irq_init
+	mov	x0, x28
+	bl	deferred_boot_cluster		/* never return if success */
 
 	mov	x0, x28
 	bl	second_cluster_dcache_invalid_notify
@@ -209,7 +214,6 @@ master_cpu:
 	mov	x0, x28
 	bl	wait_second_cluster_image_load_done
 
-	bl	irq_init
 	adr	x2, secondary_cortex_jump
 	mov	x1, #(CORTEX_CORE_MAX_NUM * 8)
 	madd	x0, x28, x1, x2

@@ -45,6 +45,10 @@ config AMBA_BOOT_SECONDARY_CLUSTER
     help
         Ambarella boot multi cluster
 
+config AMBA_DEFERRED_BOOT_SECONDARY_CLUSTER
+    bool "Boot clusters into WFE(deferred)"
+    depends on AMBA_BOOT_SECONDARY_CLUSTER
+
 choice
 	prompt "Ambarella board select"
 

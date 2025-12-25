@@ -2,15 +2,15 @@
 
 .globl amba_secondary_cortex_wait
 amba_secondary_cortex_wait:
-    mrs	x9, mpidr_el1
+    	mrs	x9, mpidr_el1
 	ubfx	x0, x9, #0, #8
 	tbz	x9, #24, 1f		/* MT bit */
 	ubfx	x0, x9, #8, #8
 1:
 	cbnz	x0, 2f
-    ret
+    	ret
 
-2:  
+2:
 	lsl	x0, x0, #3
 	wfe
 	isb
@@ -28,7 +28,7 @@ amba_secondary_cortex_wait:
 	beq	amba_secondary_cortex_wait
 
 	bl	__secondary_gic_init
-    br	x29
+    	br	x29
 
 /*************************************************/
 .align 3

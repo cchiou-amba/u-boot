@@ -42,6 +42,7 @@ config AMBA_BOOT_SECONDARY_CORTEX
 
 config AMBA_BOOT_SECONDARY_CLUSTER
     bool "Ambarella boot multi cluster"
+    select AMBA_BOOT_SECONDARY_CORTEX
     help
         Ambarella boot multi cluster
 

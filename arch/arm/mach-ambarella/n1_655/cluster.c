@@ -380,7 +380,7 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 	if (current_el() != 3)
 		return 0;
 
-#if !defined(CONFIG_AMBA_DEFERRED_BOOT_SECONDARY_CLUSTER)
+#if !defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER_DEFERRED)
 	{
 		u32 cluster_id;
 		uintptr_t jump_addr = 0, rmd_start = 0, rmd_size = 0;
@@ -473,7 +473,7 @@ static void cluster_die(u32 err)
 
 void deferred_boot_cluster(u32 id)
 {
-#if defined(CONFIG_AMBA_DEFERRED_BOOT_SECONDARY_CLUSTER)
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER_DEFERRED)
 	int verbose = 0;
 	u32 err = id << 8;
 	u64 kernelp, dtbp;

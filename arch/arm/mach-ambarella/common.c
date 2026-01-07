@@ -352,6 +352,14 @@ int get_cluster_image_type(const char *boot_args)
 			type = strstr(buf, "-");
 			if (NULL != type) {
 				int maj, min;
+				needle = strstr(&type[1], "-");
+				if (NULL != needle) {
+					if (0 == strncasecmp(&needle[1], "tz", 2)) {
+						printf("Detected TrustZone Multi-Cluster DTB\n");
+						env_set("trustzone", "-tz");
+						needle[0] = '\0';
+					}
+				}
 				if (2 == sscanf(&type[1], "%d.%d", &maj, &min)) {
 					snprintf(dtbver, sizeof(dtbver), "%d.%d", maj, min);
 					printf("Detected Multi-Cluster DTB for kernel-%s\n", dtbver);

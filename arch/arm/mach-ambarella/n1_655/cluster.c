@@ -377,8 +377,12 @@ int boot_cluster(int boot_multi_cluster, int verbose)
 		return rval;
 	}
 
-	if (current_el() != 3)
+	if (current_el() != 3) {
+		printf("Current EL is EL%d, not EL3!\n"
+			"Clusters need to be boot by pivot tool in main cluster system!\n",
+			current_el());
 		return 0;
+	}
 
 #if !defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER_DEFERRED)
 	{

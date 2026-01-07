@@ -52,11 +52,12 @@
 #endif /* PARTS_DEFAULT */
 
 #ifdef CONFIG_AMBA_BOOT_SECONDARY_CLUSTER
-/* dtbver is set by function get_cluster_image_type() in common.c */
+/* dtbver and trustzone are set by function get_cluster_image_type() in common.c */
 #define MULTI_CLUSTER_SETTINGS                                 \
     "dtbver=\0"                                                \
+    "trustzone=\0"                                             \
     "lychee_init_cluster1_image=unzip ${cluster_kernel_addr_r} ${cluster_1_jump_addr}\0" \
-    "lychee_init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /multi-cluster/dtb/ambarella/${dtbver}/cluster1.dtb\0" \
+    "lychee_init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /multi-cluster/dtb/ambarella/${dtbver}/cluster1${trustzone}.dtb\0" \
     "init_cluster1_image=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_jump_addr} /multi-cluster/vmlinuz-multi\0" \
     "init_cluster1_dtb=ext4load mmc ${emmc_dev_num}:${emmc_boot_part} ${cluster_1_dtb_addr} /multi-cluster/dtb/ambarella/cluster1.dtb\0" \
     "emmc_init_cluster1_image=mmc read ${cluster_1_jump_addr} 0x9800 0x8000\0"  \
@@ -83,11 +84,11 @@
 #if (CFG_DTB_LOAD_ADDR > 0)
 #define DTB_SETTINGS \
     "fdtaddr=" __stringify(CFG_DTB_LOAD_ADDR)  "\0" \
-    "fdt_addr_r=" __stringify(CFG_DTB_LOAD_ADDR) "\0"
+    "fdt_addr_r=0x02400000\0"
 #else
 #define DTB_SETTINGS \
-    "fdtaddr=0x07000000\0" \
-    "fdt_addr_r=0x07000000\0"
+    "fdtaddr=0x02400000\0" \
+    "fdt_addr_r=0x02400000\0"
 #endif
 
 
@@ -103,9 +104,8 @@
     "extlinux_addr_r=0x02001000\0"                              \
     "ramdisk_addr_r=0x08000000\0"                               \
     "kernel_addr_r="__stringify(CFG_KERNEL_LOAD_ADDR) "\0"       \
-    "kernel_comp_addr_r=0x04000000\0"                            \
+    "kernel_comp_addr_r=0x05500000\0"                            \
     "kernel_comp_size=0x03000000\0"                              \
-    MULTI_CLUSTER_SETTINGS                                      \
     "fdt_high=0xffffffffffffffff\0"                             \
     "sd_extlinux_file=/extlinux/extlinux.conf\0"                \
     "iso_extlinux_file=/EFI/BOOT/live/extlinux/extlinux.conf\0" \

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Ambarella International LP
+ * Copyright (c) 2026 Ambarella International LP
  */
 #ifndef __BOOT_COOKIE_H__
 #define __BOOT_COOKIE_H__

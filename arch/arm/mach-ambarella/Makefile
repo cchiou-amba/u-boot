@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0+
 #
-# Copyright (C) 2020 Ambarella International LP
+# Copyright (C) 2026 Ambarella International LP
 
 obj-y	+= pinmux.o rct.o common.o early_print.o dt-setup.o gic.o
 obj-y	+= secure/ed25519/curve25519.o secure/auth.o

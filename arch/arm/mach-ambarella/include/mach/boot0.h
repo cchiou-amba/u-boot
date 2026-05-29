@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (C) 2020 Ambarella International LP
+ * Copyright (C) 2026 Ambarella International LP
  */
 
 /* BOOT0 header information */

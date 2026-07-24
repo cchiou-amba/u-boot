@@ -4,12 +4,10 @@
 ## License Identifier: AMBARELLA-2-Clause
 ##
 
-if CONFIG_UBOOT
-
 menu "U-Boot Configuration"
 
 config U_BOOT_RAM_START
-	hex "U-boot starting address"
+	hex "U-Boot RAM start address"
 	default 0x00000000
 
 config CONFIG_UBOOT_DEFCONFIG_STRING
@@ -27,5 +25,3 @@ config CONFIG_UBOOT_DTS_NO_PRIVATE_DEVICE
 
 config CONFIG_UBOOT_LYCHEE_SUPPORT
 	bool "Build uboot image for Lychee OS"
-
-endif

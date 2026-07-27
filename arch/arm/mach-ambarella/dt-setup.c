@@ -15,6 +15,7 @@
 #include <fdt.h>
 #include <linux/libfdt.h>
 #include <asm/system.h>
+#include <version.h>
 
 //#include <config.h>
 #if 0
@@ -267,7 +268,12 @@ void fdt_setup_att_regmap(void *fdt)
 #if defined(CONFIG_ARCH_AMBARELLA_CV3) || defined(CONFIG_ARCH_AMBARELLA_N1_655) || defined(CONFIG_ARCH_AMBARELLA_CV22) || defined(CONFIG_ARCH_AMBARELLA_CV25)
 int ft_system_setup(void *blob, struct bd_info *bd)
 {
-	/* CV3: do nothing for now */
+	int rval;
+	rval = fdt_setprop_string(blob, 0, "uboot_version", U_BOOT_VERSION_STRING);
+	if (rval < 0) {
+		printf("fdt_setprop_string: %s\n", fdt_strerror(rval));
+		return rval;
+	}
 	return 0;
 }
 #else

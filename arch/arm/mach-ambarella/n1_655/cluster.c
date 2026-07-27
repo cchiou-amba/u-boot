@@ -457,7 +457,6 @@ static void cluster_die(u32 err)
 
 void deferred_boot_cluster(u32 id)
 {
-#if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER_DEFERRED)
 	int verbose = 0;
 	u32 err = id << 8;
 	u64 kernelp, dtbp;
@@ -492,5 +491,4 @@ void deferred_boot_cluster(u32 id)
 	} while(0);
 
 	cluster_die((id << 8) | err);
-#endif
 }

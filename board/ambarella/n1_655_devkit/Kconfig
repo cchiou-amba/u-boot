@@ -1,0 +1,12 @@
+if TARGET_N1_655_DEVKIT
+
+# include/configs/<target>.h
+config SYS_CONFIG_NAME
+	string
+	default "n1_655_devkit" if TARGET_N1_655_DEVKIT
+
+# board/<board>/* (or board/<vendor>/<board>/* if CONFIG_SYS_VENDOR is defined)
+config SYS_BOARD
+	default "n1_655_devkit"
+
+endif

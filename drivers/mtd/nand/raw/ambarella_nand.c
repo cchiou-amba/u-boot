@@ -1095,10 +1095,12 @@ static void ambarella_nand_init_chip(struct ambarella_nand_host *host,
 	nand_set_flash_node(chip, dev->node);
 }
 
+static struct nand_ecclayout nand_oob;
 static int ambarella_nand_init_chipecc(struct ambarella_nand_host *host)
 {
 	struct nand_chip *chip = &host->chip;
 	struct mtd_info	*mtd = nand_to_mtd(chip);
+	int i, j, steps;
 
 	/* sanity check */
 	BUG_ON(mtd->writesize != 2048 && mtd->writesize != 4096);
@@ -1113,6 +1115,16 @@ static int ambarella_nand_init_chipecc(struct ambarella_nand_host *host)
 			chip->ecc.size = 512;
 			chip->ecc.bytes = 13;
 			//chip->ecc.layout = &amb_oobinfo_2048_dsm_ecc8;
+			steps = mtd->writesize / chip->ecc.size;
+			nand_oob.eccbytes = chip->ecc.bytes * steps;
+			for (i = 0; i <  steps; i++)
+				for (j = 0; j < chip->ecc.bytes; j++)
+					nand_oob.eccpos[i * chip->ecc.bytes + j] = 2 + 17 + j + 32 * i;
+			for (i = 0; i <  steps; i++) {
+				nand_oob.oobfree[i].offset = 2 + 32 * i;
+				nand_oob.oobfree[i].length = 17;
+			}
+			chip->ecc.layout = &nand_oob;
 			host->soft_bch_extra_size = 19;
 			mtd_set_ooblayout(mtd, &amb_ecc8_lp_ooblayout_ops);
 			break;
@@ -1120,11 +1132,20 @@ static int ambarella_nand_init_chipecc(struct ambarella_nand_host *host)
 			chip->ecc.size = 512;
 			chip->ecc.bytes = 10;
 			//chip->ecc.layout = &amb_oobinfo_2048_dsm_ecc6;
+			steps = mtd->writesize / chip->ecc.size;
+			nand_oob.eccbytes = chip->ecc.bytes * steps;
+			for (i = 0; i <  steps; i++)
+				for (j = 0; j < chip->ecc.bytes; j++)
+					nand_oob.eccpos[i * chip->ecc.bytes + j] = 1 + 5 + j + 16 * i;
+			for (i = 0; i <  steps; i++) {
+				nand_oob.oobfree[i].offset = 1 + 16 * i;
+				nand_oob.oobfree[i].length = 5;
+			}
+			chip->ecc.layout = &nand_oob;
 			host->soft_bch_extra_size = 6;
 			mtd_set_ooblayout(mtd, &amb_ecc6_lp_ooblayout_ops);
 			break;
 	}
-
 	chip->ecc.hwctl = ambarella_nand_hwctl;
 	chip->ecc.calculate = ambarella_nand_calculate_ecc;
 	chip->ecc.correct = ambarella_nand_correct_data;

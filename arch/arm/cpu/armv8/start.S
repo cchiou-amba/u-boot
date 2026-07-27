@@ -205,9 +205,10 @@ master_cpu:
 	b.lo	1b
 #endif
 	bl	irq_init
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER_DEFERRED)
 	mov	x0, x28
 	bl	deferred_boot_cluster		/* never return if success */
-
+#endif
 	mov	x0, x28
 	bl	second_cluster_dcache_invalid_notify
 

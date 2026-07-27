@@ -43,6 +43,9 @@
 #elif defined(CONFIG_ARCH_AMBARELLA_N1_655)
 #include "n1_655.h"
 #define CHIP_REV	N1_655
+#elif defined(CONFIG_ARCH_AMBARELLA_CV7)
+#include "cv7.h"
+#define CHIP_REV	CV7
 #else
 #error("No specified Ambarella Soc")
 #endif

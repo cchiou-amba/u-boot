@@ -11,6 +11,12 @@
 #include <linux/bitops.h>
 #include <linux/delay.h>
 
+#if (CHIP_REV == CV7)
+#define PLL_VERSION	2
+#else
+#define PLL_VERSION	1
+#endif
+
 #define PLL_SCALER_JDIV(x)			(((x >> 4) & 0xF) + 1)
 #define REF_CLK_FREQ			24000000UL
 
@@ -104,6 +110,7 @@ u32 rct_get_emmc_poc(void)
 /* ==========================================================================*/
 static u64 rct_get_integer_pll_freq(u32 ctrl, u32 ctrl2, u32 pres, u32 posts)
 {
+#if (PLL_VERSION == 1)
 	u32 ctrl2_8, ctrl2_9, ctrl2_11, ctrl2_12;
 	u32 intp, sout, sdiv;
 	u64 fvco, freq;
@@ -140,6 +147,44 @@ static u64 rct_get_integer_pll_freq(u32 ctrl, u32 ctrl2, u32 pres, u32 posts)
 		freq = fvco / ctrl2_8 / ctrl2_11 / sout;
 
 	return freq / posts;
+#else
+	u32 ctrl_8, ctrl_9, ctrl_10, ctrl_11;
+	u32 intp, sout, sdiv;
+	u64 fvco, freq;
+
+	if(pres == 0 || posts == 0) {
+		printf("pll divider is zero \n");
+		while(1);
+	}
+
+	if (ctrl & 0x20)
+		return 0;
+
+	if (ctrl & 0x4) {
+		intp = REF_CLK_FREQ;
+		intp /= pres;
+		intp /= posts;
+		return intp;
+	}
+
+	ctrl_8 = ((ctrl >> 8) & 0x1) + 1;
+	ctrl_9 = ((ctrl >> 9) & 0x1) + 1;
+	ctrl_10 = ((ctrl >> 10) & 0x1) + 1;
+	ctrl_11 = ((ctrl >> 11) & 0x1);
+
+	intp = ((ctrl >> 24) & 0x7f) + 1;
+	sout = ((ctrl >> 16) & 0xf) + 1;
+	sdiv = ((ctrl >> 12) & 0xf) + 1;
+
+	fvco = REF_CLK_FREQ * ctrl_8 * ctrl_9 * sdiv * intp;
+
+	if (ctrl_11)
+		freq = fvco;
+	else
+		freq = fvco / ctrl_8 / ctrl_10 / sout;
+
+	return freq / posts;
+#endif
 }
 
 /* ==========================================================================*/

@@ -1,0 +1,11 @@
+if TARGET_CV7_DEVKIT
+
+# include/configs/<target>.h
+config SYS_CONFIG_NAME
+	default "cv7"
+
+# board/<board>/* (or board/<vendor>/<board>/* if CONFIG_SYS_VENDOR is defined)
+config SYS_BOARD
+	default "cv7_devkit"
+
+endif

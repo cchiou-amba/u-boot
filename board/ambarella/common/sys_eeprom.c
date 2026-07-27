@@ -6,9 +6,10 @@
 #include "eeprom.h"
 
 static struct eeprom {
-	char soc[16];		/* PCBA_NICK_NAME[0] */
-	char board[16];		/* PCBA_NICK_NAME[1] */
 	char pcba_ver[5];	/* PCBA_Version */
+	char board_rev[16];	/* BOARD_REVISION */
+	char soc[16];		/* SOC_NAME */
+	char manufacturer[32];	/* MANUFACTURER */
 	char lot_nr[12];	/* LOT_NUMBER */
 } e = {0};
 
@@ -21,8 +22,10 @@ char *get_pcba_version(void)
 
 static void show_eeprom(void)
 {
-	printf("PCBA_NICK_NAME: %s %s\n", e.soc, e.board);
 	printf("PCBA_VERSION: %s\n", e.pcba_ver);
+	printf("BOARD_REVISION: %s\n", e.board_rev);
+	printf("SOC_NAME: %s\n", e.soc);
+	printf("MANUFACTURER: %s\n", e.manufacturer);
 	printf("LOT_NUMBER: %s\n", e.lot_nr);
 }
 
@@ -67,12 +70,15 @@ static int read_eeprom(void)
 	while (*p) {
 		ret = sscanf(p, "%[^:]: %[^\r\n]%n", key, value, &n);
 		if (ret == 2) {
-			if (strcmp(key, "PCBA_NICK_NAME") == 0) {
-				sscanf(value, "%15s %15[^\0]", e.soc, e.board);
-				if (strcmp(e.soc, "N1655") == 0) strncpy(e.soc, "N1-655", sizeof(e.soc) - 1);
-			} else if (strcmp(key, "PCBA_Version") == 0) {
+			if (strcmp(key, "PCBA_Version") == 0) {
 				strncpy(e.pcba_ver, value, sizeof(e.pcba_ver) - 1);
 				if (e.pcba_ver[0] == 'V') e.pcba_ver[0] = 'v';
+			} else if (strcmp(key, "BOARD_REVISION") == 0) {
+				strncpy(e.board_rev, value, sizeof(e.board_rev) - 1);
+			} else if (strcmp(key, "SOC_NAME") == 0) {
+				strncpy(e.soc, value, sizeof(e.soc) - 1);
+			} else if (strcmp(key, "MANUFACTURER") == 0) {
+				strncpy(e.manufacturer, value, sizeof(e.manufacturer) - 1);
 			} else if (strcmp(key, "LOT_NUMBER") == 0) {
 				strncpy(e.lot_nr, value, sizeof(e.lot_nr) - 1);
 			} else if (strcmp(key, "MAC0") == 0) {
@@ -103,7 +109,8 @@ int mac_read_from_eeprom(void)
 	}
 
 	/* serial#=Ambarella N1-655 v110 H1234567890 */
-	sprintf(serial_num, "Ambarella %s %s %s", e.soc, e.pcba_ver, e.lot_nr);
+	sprintf(serial_num, "Ambarella %s %s %s",
+		e.soc, (e.board_rev[0] != '\0') ? e.board_rev : e.pcba_ver, e.lot_nr);
 	env_set("serial#", serial_num);
 
 	return 0;

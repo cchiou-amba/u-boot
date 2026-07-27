@@ -205,6 +205,10 @@ lr	.req	x30
 			SPSR_EL_M_AARCH64 | SPSR_EL_M_EL2H)
 	msr	spsr_el3, \tmp
 	msr	elr_el3, \ep
+	/* Clear mdcr_el3 and spsr_el1 which have unknown reset value, cv7 need this  */
+	msr	spsr_el2, xzr
+	msr	spsr_el1, xzr
+	msr	mdcr_el3, xzr
 	eret
 
 1:

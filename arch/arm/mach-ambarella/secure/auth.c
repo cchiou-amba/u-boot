@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <asm/arch-ambarella/key_alg.h>
 
-#if defined(CFG_TRUSTZONE_SECURE_BOOT)
+#if defined(CFG_SECURE_BOOT)
 #include "incbin.h"
 
 #ifndef CFG_BOOTIMG_AUTH_PUBKEY

@@ -439,7 +439,7 @@ WEAK(save_boot_params)
 	b	save_boot_params_ret	/* back to my caller */
 ENDPROC(save_boot_params)
 
-#if defined(AMBOOT_BOOT_SECONDARY_CLUSTER)
+#if defined(CONFIG_AMBA_BOOT_SECONDARY_CLUSTER)
 .extern second_cluster_dcache_invalid_notify
 .extern second_cluster_image_load_notify
 #endif

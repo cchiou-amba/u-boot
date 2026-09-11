@@ -1,0 +1,6 @@
+N1-655 COBRA BOARD
+M:	Pu-Hang Ding <phding@ambarella.com>
+S:	Maintained
+F:	board/ambarella/n1_655_cobra
+F:	include/configs/n1_655_cobra.h
+F:	configs/ambarella_n1_655_cobra_defconfig

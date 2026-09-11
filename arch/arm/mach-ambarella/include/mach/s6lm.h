@@ -1,0 +1,57 @@
+#ifndef __MACH_SOC_S6LM_H__
+#define __MACH_SOC_S6LM_H__
+
+#define DRAM_SPACE_START	0x00000000
+#define DRAM_SPACE_SIZE		0xC0000000
+#define DEVICE_SPACE_START	0xC0000000
+#define DEVICE_SPACE_SIZE	0x40000000
+
+#define AHB_BASE		0xE0000000
+#define APB_BASE		0xE4000000
+#define AXI_BASE		0xF0000000
+
+#define S_AHB_BASE		(0xE8000000)
+#define N_AHB_BASE		(AHB_BASE)
+#define S_APB_BASE		(0xEC000000)
+#define N_APB_BASE		(APB_BASE)
+
+#define UARTD_BASE		(0xE4000000)		/* UART DBG */
+#define IOMUX_BASE		(0xEC000000)
+#define RCT_BASE		(0xED080000)
+
+/*
+ * GIC
+ */
+#define CONFIG_GICV2
+#define GICD_BASE		0xF3001000
+#define GICC_BASE		0xF3002000
+
+#define MAX_GPIO_NUM		86
+
+/*
+ * RCT register
+ */
+
+#define FIO_RESET_OFFSET		0x074
+#define FIO_RESET_FIO_RST		0x00000008
+#define FIO_RESET_CF_RST		0x00000004
+#define FIO_RESET_XD_RST		0x00000002
+#define FIO_RESET_FLASH_RST		0x00000001
+
+#define SYS_CONFIG_OFFSET		0x034
+#define SYS_CONFIG_NAND_SPINAND		0xffffffff /* not used, spinand only */
+#define SYS_CONFIG_NAND_SCKMODE		0x00080000
+#define SYS_CONFIG_NAND_4K_FIFO		0xffffffff /* not used */
+#define SYS_CONFIG_NAND_8K_FIFO		0x00000000 /* not used */
+#define SYS_CONFIG_NAND_PAGE_SIZE	0x00040000
+#define SYS_CONFIG_NAND_READ_CONFIRM	0xffffffff /* not used */
+#define SYS_CONFIG_NAND_ECC_BCH_EN	0x00010000
+#define SYS_CONFIG_NAND_ECC_SPARE_2X	0x00008000
+
+#define SYS_CONFIG_BOOT_SPINOR		(0b00 << 4)
+#define SYS_CONFIG_BOOT_NAND		(0b01 << 4)
+#define SYS_CONFIG_BOOT_EMMC		(0b10 << 4)
+#define SYS_CONFIG_BOOT_RSVD		(0b11 << 4)
+#define SYS_CONFIG_BOOT_MASK		(0b11 << 4)
+
+#endif

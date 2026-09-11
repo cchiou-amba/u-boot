@@ -1,0 +1,21 @@
+if TARGET_N1_655_COBRA
+
+# include/configs/<target>.h
+config SYS_CONFIG_NAME
+	default "n1_655_cobra"
+
+# board/<board>/* (or board/<vendor>/<board>/* if CONFIG_SYS_VENDOR is defined)
+config SYS_BOARD
+	default "n1_655_cobra"
+
+choice
+	prompt "Board Revision"
+	default BOARD_N1_655_COBRA_V110
+	help
+		Select N1_655 Cobra Board Revision
+
+config BOARD_N1_655_COBRA_V110
+	bool "N1_655 Cobra V110 Board"
+endchoice
+
+endif

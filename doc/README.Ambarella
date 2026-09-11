@@ -1,0 +1,214 @@
+# SPDX-License-Identifier: GPL-2.0+
+#
+# Copyright (C) 2022 Ambarella, Inc.
+#
+
+      U-Boot of Ambarella
+
+This document describes how to compile the U-Boot and how to flash U-Boot
+about the Ambarella CV5.
+
+Table of Contents
++++++++++++++++++
+
+  I - Introduction
+  II - Nand Boot Build Options
+  III - eMMC Boot Build Options
+  IV - NOTE
+
+
+
+I - Introduction
+------------------
+
+1) U-Boot
+U-Boot is an open source Universal Boot Loader.
+Please refer to https://www.denx.de/wiki/U-Boot for details.
+
+2) Platform
+Ambarella U-Boot code is used on CV5 platfrom, such as the CV5_timn EVK.
+
+
+II - Nand Boot Build Options
+------------------
+
+1) build configuration
+	a) config and build steps
+        Demo:
+	# cd ambarella/boards/cv5_timn
+	# source ../../build/env/cortex-a76-linux5.15-gcc.env
+        # make sync_build_mkcfg
+        # make cv5_ipcam_uboot_config
+	# make defconfig_public_linux
+	# make -j8
+	# make ambust
+        # make ubootbst
+
+	Firmware files:
+	# ls ../../out/cv5_timn/images/
+	cv5_timn_ambust_lpddr5_signed.bin
+	u-boot.bin
+	uboot_bst_release.bin
+
+	# ls ../../out/cv5_timn/kernel/
+	Image
+
+	# ls ../../out/cv5_timn/rootfs/
+	ubifs
+
+	Binaries detail:
+	cv5_timn_ambust_lpddr5_signed.bin:	use for dram initialization when in force usb mode.
+	u-boot.bin:							u-boot binary
+	uboot_bst_release.bin:				u-boot bst binary
+	Image:								kernel binary
+	ubifs:								file system binary
+
+	b) Key menu for config
+	There are several options in menuconfig can be selected when building U-Boot.
+      	    	[*] Ambarella Boot Configuration  --->
+			Bootloader (U-Boot) --->
+					U-Boot Configuration  --->
+		       U-Boot BST Options  --->
+					USBstrap Configuration  --->
+
+2) Firmware download
+	a) use "fastboot" to download U-Boot related binaries to FLASH.
+	Please refer to https://github.com/ARM-software/u-boot/blob/master/doc/README.android-fastboot for details.
+
+	b) Tools (the site is for internal only)
+	 http://yocto.ambarella.com/cv5_recovery/
+	 Please refer to the Readme in the recovery directory.
+
+	c) First time download binary for new blank flash
+	  1) Enter force usb mode
+          2) use the tool in item b)
+          3) init the dram, command in pc client:
+		pack_image_usb.exe -f cv5_timn_ambust_lpddr5_signed.bin
+
+	  4) load u-boot binary to dram run in the board, like magic wand in Ambausb tool, command in pc client:
+		fastboot.exe boot u-boot.bin --base 0x0
+
+	  5) run related fastboot commands in the board
+		# mtdparts
+		device nand0 <amba_nand>, # parts = 4
+ 		#: name                size            offset          mask_flags
+		0: bootstrap           0x00020000      0x00000000      0
+		1: uboot               0x00100000      0x00020000      0
+		2: kernel              0x01000000      0x00120000      0
+		3: rootfs              0x08000000      0x01120000      0
+	The parts names are one to one with the bianries.
+		See items 6) command with 'fastboot.ext flash xxx(parts_name) xxx(binary_name)'
+
+		# nand erase.chip
+                # fastboot usb 0
+             enter fastboot mode
+
+	  6) run fastboot in the pc client, one by one.
+		fastboot.exe flash bootstrap uboot_bst_release.bin
+		fastboot.exe flash uboot u-boot.bin
+		fastboot.exe flash kernel Image
+		fastboot.exe flash rootfs ubifs
+	  7) set board to normal boot from usb boot
+		Power on
+
+III - eMMC Boot Build Options
+------------------
+
+1) build configuration
+	a) config and build steps
+	change ini based on partition configuraion:
+		such as uboot partiton start at 1M, then we should add below in ini
+		<PARAM_BLD_MEDIA_START value="0x100000"/>
+        Demo:
+	# cd ambarella/boards/cv5_timn
+	# source ../../build/env/cortex-a76-linux5.15-gcc.env
+	# make sync_build_mkcfg
+	# make cv5_ipcam_uboot_emmc_config
+	# make defconfig_public_linux
+	# make menuconfig_public_linux  (select CONFIG_EFI_PARTITION)
+		-*- Enable the block layer  --->
+			Partition Types  --->
+				[*]   EFI GUID Partition support
+	# make -j8
+	# make ambust
+	# make ubootbst
+
+	Firmware files:
+	# ls ../../out/cv5_timn/images/
+	cv5_timn_ambust_lpddr5_signed.bin
+	u-boot.bin
+	uboot_bst_release.bin
+
+	# ls ../../out/cv5_timn/kernel/
+	Image
+
+	# ls ../../out/cv5_timn/rootfs/
+	ext4
+
+	Binaries detail:
+	cv5_timn_ambust_lpddr5_signed.bin:	use for dram initialization when in force usb mode.
+	u-boot.bin:				u-boot binary
+	uboot_bst_release.bin:			u-boot bst binary
+	Image:					kernel binary
+	ext4:					file system binary
+
+	b) Key menu for config
+	There are several options in menuconfig can be selected when building U-Boot.
+		[*] Ambarella Boot Configuration  --->
+			Bootloader (U-Boot) --->
+				U-Boot Configuration  --->
+			U-Boot BST Options  --->
+					USBstrap Configuration  --->
+
+2) Firmware download
+	a) First time download binary for new blank flash
+	  1) Enter force usb mode
+	  2) use the tool in item b)
+	  3) init the dram, command in pc client:
+		pack_image_usb.exe -f cv5_timn_ambust_lpddr5_signed.bin
+
+	  4) load u-boot binary to dram run in the board, like magic wand in Ambausb tool, command in pc client:
+		fastboot.exe boot u-boot.bin --base 0x0
+
+	  5) run related fastboot commands in the board
+		See items 6) command with 'fastboot flash xxx(parts_name) xxx(binary_name)'
+
+             # fastboot usb 0
+             enter fastboot mode
+
+	  6) run fastboot in the pc client, one by one.
+		setup partition table
+			fastboot oem cmd: gpt write mmc 0 ${partitions}
+		setup bus width
+			for 8bit bus width:
+				fastboot oem cmd: mmc bootbus 0 2 1 0
+			for 4bit bus width:
+				fastboot oem cmd: mmc bootbus 0 1 1 0
+		setup boot partition
+			for boot partition1:
+				fastboot oem cmd: mmc partconf 0 0 1 0
+		setup RESET_n_FUNCTION
+			fastboot oem cmd: mmc rst-function 0 1
+		fastboot flash bst uboot_bst_release.bin
+		fastboot flash uboot u-boot.bin
+		fastboot flash kernel Image
+		fastboot flash rootfs ext4
+		ps: for rootfs, some times it is large, we need to change raw ext4 to android sparse image format, then flash
+			img2simg ext4 ext4_s
+			fastboot flash rootfs ext4_s
+	  7) set board to normal boot from usb boot
+		Power on
+
+ps: if you want to u-boot at the same partition with bst, we can do like below
+	change ini:
+		<PARAM_BLD_MEDIA_START value="0x2000"/>
+		<AMBOOT_EMMC_NEXT_FW_AREA value="BootPartition1"/>
+	generate the new bst image which with u-boot.bin
+		cat uboot_bst_release.bin u-boot.bin > bst_with_uboot.bin
+	then flash bst_with_uboot.bin
+		fastboot flash bst bst_with_uboot.bin
+
+IV - Note
+------------------
+More U-Boot commands, please refer to the U-Boot or Linux community.
+

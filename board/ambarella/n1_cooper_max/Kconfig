@@ -1,0 +1,24 @@
+if TARGET_N1_COOPER_MAX
+
+# include/configs/<target>.h
+config SYS_CONFIG_NAME
+	default "n1_cooper_max"
+
+# board/<board>/* (or board/<vendor>/<board>/* if CONFIG_SYS_VENDOR is defined)
+config SYS_BOARD
+	default "n1_cooper_max"
+
+choice
+	prompt "Board Revision"
+	default BOARD_N1_V110
+	help
+		Select N1 Cooper Max Board Revision
+
+config BOARD_N1_V110
+	bool "N1 Cooper Max V110 Board"
+
+config BOARD_N1_V120
+	bool "N1 Cooper Max V120 Board"
+endchoice
+
+endif

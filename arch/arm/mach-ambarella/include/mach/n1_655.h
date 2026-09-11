@@ -1,0 +1,86 @@
+#ifndef __MACH_SOC_N1_655_H__
+#define __MACH_SOC_N1_655_H__
+
+/* boot/amboot/include/ambhw/memory.h */
+#define DRAM_SPACE_START		0x0000000000
+#define DRAM_SPACE_SIZE			0x2000000000
+#define DEVICE_SPACE_START		0xFF00000000
+#define DEVICE_SPACE_SIZE		0x0100000000
+
+#define AHB_BASE			0xFFE0000000
+#define APB_BASE			0xFFE4000000
+#define AXI_BASE			0xFFF3000000
+
+/* boot/amboot/include/ambhw/rct.h */
+#define RCT_BASE			0xFFED080000
+
+/* boot/amboot/include/ambhw/scratchpad.h */
+#define AHBSP_NS_BASE			0xFFE003F000 /* SCRATCHPAD_BASE */
+#if 0
+#define SCRATCHPAD_DATA3_OFFSET		0x78
+#define AHBSP_DATA3_REG			(AHBSP_NS_BASE + SCRATCHPAD_DATA3_OFFSET)
+#endif
+
+/* boot/amboot/include/ambhw/gic.h */
+#define CONFIG_GICV2
+#define GICD_BASE			0xFFF0101000
+#define GICC_BASE			0xFFF0102000
+
+/* boot/amboot/include/ambhw/gpio.h */
+#define MAX_GPIO_NUM			200
+#define IOMUX_BASE			0xFFE4010000
+
+/*
+ * RCT register
+ */
+#define SYS_CONFIG_OFFSET		0x034
+#define SYS_CONFIG_NAND_SPINAND		0xFFFFFFFF /* not used, spinand only */
+#define SYS_CONFIG_NAND_SCKMODE		0x00040000
+#define SYS_CONFIG_NAND_4K_FIFO		0xFFFFFFFF /* not used */
+#define SYS_CONFIG_NAND_8K_FIFO		0x00080000 /* not used */
+#define SYS_CONFIG_NAND_32K_FIFO	0x00100000
+#define SYS_CONFIG_NAND_PAGE_SIZE	0x00020000
+#define SYS_CONFIG_NAND_READ_CONFIRM	0xffffffff /* not used */
+#define SYS_CONFIG_NAND_ECC_BCH_EN	0x00008000
+#define SYS_CONFIG_NAND_ECC_SPARE_2X	0x00004000
+
+#define SYS_CONFIG_BOOT_SPINOR		(0b00 << 4)
+#define SYS_CONFIG_BOOT_NAND		(0b01 << 4)
+#define SYS_CONFIG_BOOT_EMMC		(0b10 << 4)
+#define SYS_CONFIG_BOOT_RSVD		(0b11 << 4)
+#define SYS_CONFIG_BOOT_MASK		(0b11 << 4)
+
+#define RCT_REG(x)			(RCT_BASE + (x))
+#define SYS_CONFIG_REG			RCT_REG(SYS_CONFIG_OFFSET)
+
+#define CLK_SI_INPUT_MODE_OFFSET	0xBC
+#define CLK_SI_INPUT_MODE_REG		RCT_REG(CLK_SI_INPUT_MODE_OFFSET)
+
+#define POC_PERIPHERAL_CLK_MODE		0x04000000
+
+#define PLL_CORTEX_CTRL_OFFSET		0x264
+#define PLL_CORTEX_FRAC_OFFSET		0x268
+#define PLL_CORTEX_CTRL2_OFFSET		0x26C
+#define PLL_CORTEX_CTRL3_OFFSET		0x270
+#define PLL_CORTEX_CTRL_REG		RCT_REG(PLL_CORTEX_CTRL_OFFSET)
+#define PLL_CORTEX_FRAC_REG		RCT_REG(PLL_CORTEX_FRAC_OFFSET)
+#define PLL_CORTEX_CTRL2_REG		RCT_REG(PLL_CORTEX_CTRL2_OFFSET)
+#define PLL_CORTEX_CTRL3_REG		RCT_REG(PLL_CORTEX_CTRL3_OFFSET)
+
+/* boot/amboot/include/ambhw/drctl.h */
+/* DRAM ctrl register */
+#define DRAMC_PHYS_BASE			0xFF08000000
+#define DRAM_DRAM_OFFSET		0x00000
+#define DRAM_DDRC_OFFSET  		0x14000
+#define DRAMC_DRAM_BASE			0xFF08000000
+#define DRAMC_DDRC_BASE			0xFF08014000
+#define DRAM_REG(x)			(DRAMC_DRAM_BASE + (x))
+
+/* Dram registers offset */
+#define REG_DRAM_MODE			0x000
+#define DRAM_BURST_SIZE(x)		32
+#define IDSP_RAM_START			(1ULL << 32)
+#define FRAMEBUFFER_SIZE		0
+#define DRAM_START_ADDR			DRAM_SPACE_START
+
+#endif /* __MACH_SOC_N1_655_H__ */

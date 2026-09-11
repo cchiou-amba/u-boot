@@ -1,0 +1,91 @@
+#ifndef __MACH_SOC_CV3_H__
+#define __MACH_SOC_CV3_H__
+
+#define CHIP_REV    CV3
+#define DRAM_SPACE_START	0x0000000000
+#define DRAM_SPACE_SIZE		0x1000000000
+#define DEVICE_SPACE_START	0xFF00000000
+#define DEVICE_SPACE_SIZE	0x0100000000
+
+#define AHB_BASE		0xffe0000000
+#define APB_BASE		0xffe4000000
+#define AXI_BASE		0xfff3000000
+
+#define UARTD_BASE		0xffe4000000		/* UART DBG */
+#define IOMUX_BASE		0xffe4010000
+#define RCT_BASE		0xffed080000
+#define AHBSP_NS_BASE		0xffe0024000
+#define SCRATCHPAD_DATA3_OFFSET 0X78
+#define AHBSP_DATA3_REG (AHBSP_NS_BASE + SCRATCHPAD_DATA3_OFFSET)
+
+/*
+ * GIC
+ */
+#define CONFIG_GICV2
+#define GICD_BASE		0xfff0101000
+#define GICC_BASE		0xfff0102000
+
+#define MAX_GPIO_NUM		213
+/*
+ * RCT register
+ */
+
+#define FIO_RESET_OFFSET		0x074
+#define FIO_RESET_FIO_RST		0x00000008
+#define FIO_RESET_CF_RST		0x00000004
+#define FIO_RESET_XD_RST		0x00000002
+#define FIO_RESET_FLASH_RST		0x00000001
+
+#define SYS_CONFIG_OFFSET		0x034
+#define SYS_CONFIG_NAND_SPINAND		0xffffffff /* not used, spinand only */
+#define SYS_CONFIG_NAND_SCKMODE		0x00040000
+#define SYS_CONFIG_NAND_4K_FIFO		0xffffffff /* not used */
+#define SYS_CONFIG_NAND_8K_FIFO		0x00100000 /* not used */
+#define SYS_CONFIG_NAND_PAGE_SIZE	0x00020000
+#define SYS_CONFIG_NAND_READ_CONFIRM	0xffffffff /* not used */
+#define SYS_CONFIG_NAND_ECC_BCH_EN	0x00008000
+#define SYS_CONFIG_NAND_ECC_SPARE_2X	0x00004000
+
+#define SYS_CONFIG_BOOT_SPINOR		(0b00 << 4)
+#define SYS_CONFIG_BOOT_NAND		(0b01 << 4)
+#define SYS_CONFIG_BOOT_EMMC		(0b10 << 4)
+#define SYS_CONFIG_BOOT_RSVD		(0b11 << 4)
+#define SYS_CONFIG_BOOT_MASK		(0b11 << 4)
+
+#define RCT_REG(x)			(RCT_BASE + (x))
+#define SYS_CONFIG_REG                  RCT_REG(SYS_CONFIG_OFFSET)
+
+#define CLK_SI_INPUT_MODE_OFFSET      0xBC
+#define CLK_SI_INPUT_MODE_REG         RCT_REG(CLK_SI_INPUT_MODE_OFFSET)
+
+#define POC_PERIPHERAL_CLK_MODE         0x04000000
+#define POC_ORC_CLK_MODE                0x00000000
+
+#define PLL_CORTEX_CTRL_OFFSET		0x264
+#define PLL_CORTEX_FRAC_OFFSET		0x268
+#define PLL_CORTEX_CTRL2_OFFSET		0x26C
+#define PLL_CORTEX_CTRL3_OFFSET		0x270
+#define PLL_CORTEX_CTRL_REG		RCT_REG(PLL_CORTEX_CTRL_OFFSET)
+#define PLL_CORTEX_FRAC_REG		RCT_REG(PLL_CORTEX_FRAC_OFFSET)
+#define PLL_CORTEX_CTRL2_REG		RCT_REG(PLL_CORTEX_CTRL2_OFFSET)
+#define PLL_CORTEX_CTRL3_REG		RCT_REG(PLL_CORTEX_CTRL3_OFFSET)
+
+/* DRAM ctrl register */
+//#define DRAMC_PHYS_BASE                         0x1000000000
+//#define DRAM_DRAM_OFFSET                        0x00000
+#define DRAMC_DRAM_BASE                         0xff08000000
+#define DRAMC_DDRC_BASE                         0xff08014000
+
+#define DRAM_REG(x)				(DRAMC_DRAM_BASE + (x))
+/* Dram registers offset*/
+#define REG_DRAM_MODE				0x000
+
+#define DRAM_BURST_SIZE(x)			64
+
+#define IDSP_RAM_START          (1ULL << 32)
+#define FRAMEBUFFER_SIZE		0
+
+//#define DRAM_START_ADDR         DRAM_SPACE_START
+#define DRAM_START_ADDR         0x400000
+
+#endif

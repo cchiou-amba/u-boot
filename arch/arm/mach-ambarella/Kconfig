@@ -1,0 +1,153 @@
+if ARCH_AMBARELLA
+
+# board/<vendor>/common/* and board/<vendor>/<board>/*
+config SYS_VENDOR
+	default "ambarella"
+
+# arch/<arch>/cpu/<cpu>/<soc> and mach-<soc>
+config SYS_SOC
+	default "ambarella"
+
+config ARCH_AMBARELLA_CV28
+	def_bool n
+
+config ARCH_AMBARELLA_CV25
+	def_bool n
+
+config ARCH_AMBARELLA_CV22
+	def_bool n
+
+config ARCH_AMBARELLA_S6LM
+	def_bool n
+
+config ARCH_AMBARELLA_CV5
+	def_bool n
+
+config ARCH_AMBARELLA_CV3
+	def_bool n
+
+config ARCH_AMBARELLA_CV72
+	def_bool n
+
+config ARCH_AMBARELLA_CV75
+	def_bool n
+
+config ARCH_AMBARELLA_N1_655
+	def_bool n
+
+config ARCH_AMBARELLA_CV7
+	def_bool n
+
+config AMBA_BOOT_SECONDARY_CORTEX
+    bool "Ambarella boot secondary cortex"
+    help
+        Ambarella boot secondary cortex
+
+config AMBA_BOOT_SECONDARY_CLUSTER
+    bool "Ambarella boot multi cluster"
+    select AMBA_BOOT_SECONDARY_CORTEX
+    help
+        Ambarella boot multi cluster
+
+config AMBA_BOOT_SECONDARY_CLUSTER_DEFERRED
+    bool "Boot clusters into WFE(deferred)"
+    depends on AMBA_BOOT_SECONDARY_CLUSTER
+
+choice
+	prompt "Ambarella board select"
+
+config TARGET_S6LM_DEVKIT
+	bool "Ambarella S6L devkit"
+	select ARCH_AMBARELLA_S6LM
+	help
+		Ambarella International LP
+
+config TARGET_CV22_DEVKIT
+	bool "Ambarella CV22 devkit"
+	select ARCH_AMBARELLA_CV22
+	help
+		Ambarella International LP
+
+config TARGET_CV25_DEVKIT
+	bool "Ambarella CV25 devkit"
+	select ARCH_AMBARELLA_CV25
+	help
+		Ambarella International LP
+
+config TARGET_CV28_DEVKIT
+	bool "Ambarella CV28 devkit"
+	select ARCH_AMBARELLA_CV28
+	help
+		Ambarella International LP
+
+config TARGET_CV5_DEVKIT
+	bool "Ambarella CV5 devkit"
+	select ARCH_AMBARELLA_CV5
+	help
+		Ambarella International LP
+
+config TARGET_CV3_DEVKIT
+	bool "Ambarella CV3 devkit"
+	select ARCH_AMBARELLA_CV3
+	help
+		Ambarella International LP
+
+config TARGET_CV3_BUB
+	bool "Ambarella CV3 Bring-Up Board"
+	select ARCH_AMBARELLA_CV3
+	help
+		Ambarella International LP
+
+config TARGET_CV72_DEVKIT
+	bool "Ambarella CV72 devkit"
+	select ARCH_AMBARELLA_CV72
+	help
+		Ambarella International LP
+
+config TARGET_CV72_COOPER_MINI
+	bool "Ambarella CV72 Cooper Mini"
+	select ARCH_AMBARELLA_CV72
+
+config TARGET_N1_COOPER_MAX
+	bool "Ambarella N1 Cooper Max"
+	select ARCH_AMBARELLA_CV3
+
+config TARGET_CV75_DEVKIT
+	bool "Ambarella CV75 devkit"
+	select ARCH_AMBARELLA_CV75
+
+config TARGET_N1_655_COBRA
+	bool "Ambarella N1_655 COBRA"
+	select ARCH_AMBARELLA_N1_655
+
+config TARGET_N1_655_COOPER_PRO
+	bool "Ambarella N1 655 COOPER PRO"
+	select ARCH_AMBARELLA_N1_655
+
+config TARGET_N1_655_DEVKIT
+	bool "Ambarella N1 655 DEVKIT"
+	select ARCH_AMBARELLA_N1_655
+
+config TARGET_CV7_DEVKIT
+	bool "Ambarella CV7 DEVKIT"
+	select ARCH_AMBARELLA_CV7
+
+endchoice
+
+#source "board/ambarella/s6lm_devkit/Kconfig"
+#source "board/ambarella/cv22_devkit/Kconfig"
+#source "board/ambarella/cv25_devkit/Kconfig"
+#source "board/ambarella/cv28_devkit/Kconfig"
+source "board/ambarella/cv5_devkit/Kconfig"
+source "board/ambarella/cv72_devkit/Kconfig"
+source "board/ambarella/cv72_cooper_mini/Kconfig"
+source "board/ambarella/cv3_devkit/Kconfig"
+source "board/ambarella/cv3_bub/Kconfig"
+source "board/ambarella/n1_cooper_max/Kconfig"
+source "board/ambarella/cv75_devkit/Kconfig"
+source "board/ambarella/n1_655_cobra/Kconfig"
+source "board/ambarella/n1_655_cooper_pro/Kconfig"
+source "board/ambarella/n1_655_devkit/Kconfig"
+source "board/ambarella/cv7_devkit/Kconfig"
+
+endif

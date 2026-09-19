@@ -39,6 +39,10 @@
 /* EEPROM */
 #define CONFIG_ID_EEPROM
 
+#ifndef CONFIG_SYS_MMC_ENV_PART
+#define CONFIG_SYS_MMC_ENV_PART 1
+#endif
+
 /*
  *
  */
@@ -105,7 +109,7 @@
     DTB_SETTINGS                                                \
     "extlinux_addr_r=0x02001000\0"                              \
     "ramdisk_addr_r=0x08000000\0"                               \
-    "kernel_addr_r="__stringify(CFG_KERNEL_LOAD_ADDR) "\0"       \
+    "kernel_addr_r="__stringify(CONFIG_SYS_LOAD_ADDR) "\0"       \
     "kernel_comp_addr_r=0x05500000\0"                            \
     "kernel_comp_size=0x03000000\0"                              \
     "fdt_high=0xffffffffffffffff\0"                             \

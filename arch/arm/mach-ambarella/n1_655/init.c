@@ -56,9 +56,18 @@ void plat_f_soc_init(void)
 
 void plat_r_reset_cpu(void)
 {
-	rct_writel(0x068, 0xE);
+	u32 val = rct_readl(0x068);
+
+	/*
+	 * Ambarella N1-655 (5nm CV3AD655) SoC soft reset:
+	 * Clear reset mask bits [1:0] (0x3) then assert them to trigger warm reset.
+	 */
+	rct_writel(0x068, val & ~0x3);
 	dsb();
-	rct_writel(0x068, 0xF);
+	isb();
+	rct_writel(0x068, val | 0x3);
+	dsb();
+	isb();
 }
 
 void cpu_secondary_init_r(void)

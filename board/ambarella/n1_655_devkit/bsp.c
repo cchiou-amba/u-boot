@@ -167,12 +167,16 @@ int board_late_init(void)
 		return rval;
 	}
 
+	rval = ambarella_board_mac_init();
+	if (rval)
+		pr_err("ERROR: MAC provisioning in boot0 failed (%d)\n", rval);
+
 	plat_r_board_late_init();
 
 #ifdef CONFIG_USB_GADGET
 	rval = __init_usb_gadget();
 	if (rval)
-		return rval;
+		pr_warn("Warning: USB gadget init failed (%d), continuing...\n", rval);
 #endif
 
 	return 0;

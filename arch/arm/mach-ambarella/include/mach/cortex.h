@@ -91,6 +91,7 @@
 
 /* used for Cortex boot Cortex */
 extern u64 secondary_cortex_jump[];
+int fdt_update_cpux(void *fdt, int verbose);
 // extern void bld_prepare_secondary_cortex(void);
 // extern void bld_boot_secondary_cortex(void);
 // extern void bld_reset_secondary_cpumask(u32 mask);

@@ -61,6 +61,12 @@ U_BOOT_CMD(
 	""
 );
 
+U_BOOT_CMD(
+	reboot, 1, 0,	do_reset,
+	"Perform RESET of the CPU",
+	""
+);
+
 #ifdef CONFIG_CMD_POWEROFF
 U_BOOT_CMD(
 	poweroff, 1, 0,	do_poweroff,

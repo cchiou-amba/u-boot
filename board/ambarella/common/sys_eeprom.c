@@ -2,7 +2,10 @@
 #include <command.h>
 #include <env.h>
 #include <i2c.h>
+#include <net.h>
+#include <linux/ctype.h>
 #include <linux/delay.h>
+#include <linux/errno.h>
 #include "eeprom.h"
 
 static struct eeprom {
@@ -116,12 +119,163 @@ int mac_read_from_eeprom(void)
 	return 0;
 }
 
-int do_mac(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
+static int parse_and_validate_mac(const char *str, uchar *enetaddr)
 {
-	if (argc == 1) {
-		show_eeprom();
-		return 0;
+	int i;
+
+	if (!str) {
+		printf("Error: NULL MAC address string.\n");
+		return -EINVAL;
 	}
 
+	if (strlen(str) != 17) {
+		printf("Error: malformed MAC address '%s' (expected 17 chars: XX:XX:XX:XX:XX:XX).\n", str);
+		return -EINVAL;
+	}
+
+	for (i = 0; i < 17; i++) {
+		if ((i % 3) == 2) {
+			if (str[i] != ':') {
+				printf("Error: malformed delimiter '%c' at position %d (expected ':').\n", str[i], i);
+				return -EINVAL;
+			}
+		} else {
+			if (!isxdigit(str[i])) {
+				printf("Error: non-hex digit '%c' at position %d.\n", str[i], i);
+				return -EINVAL;
+			}
+		}
+	}
+
+	string_to_enetaddr(str, enetaddr);
+
+	if (is_zero_ethaddr(enetaddr)) {
+		printf("Error: all-zero MAC address '%s' is rejected.\n", str);
+		return -EINVAL;
+	}
+
+	if (is_broadcast_ethaddr(enetaddr)) {
+		printf("Error: broadcast MAC address '%s' is rejected.\n", str);
+		return -EINVAL;
+	}
+
+	if (is_multicast_ethaddr(enetaddr)) {
+		printf("Error: multicast MAC address '%s' is rejected.\n", str);
+		return -EINVAL;
+	}
+
+	if (!is_valid_ethaddr(enetaddr)) {
+		printf("Error: invalid MAC address '%s'.\n", str);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+int do_mac(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
+{
+	if (argc == 1 || (argc == 2 && strcmp(argv[1], "show") == 0)) {
+		const char *addr = env_get("ethaddr");
+		if (addr && *addr)
+			printf("Active ethaddr: %s\n", addr);
+		else
+			printf("Active ethaddr: not set\n");
+		return CMD_RET_SUCCESS;
+	}
+
+	if (argc == 2 && strcmp(argv[1], "random") == 0) {
+		uchar enetaddr[6];
+		char formatted[18];
+		int ret;
+
+		net_random_ethaddr(enetaddr);
+		snprintf(formatted, sizeof(formatted), "%02x:%02x:%02x:%02x:%02x:%02x",
+			 enetaddr[0], enetaddr[1], enetaddr[2],
+			 enetaddr[3], enetaddr[4], enetaddr[5]);
+
+		ret = env_set("ethaddr", formatted);
+		if (ret) {
+			printf("Error: failed to set ethaddr in environment (%d).\n", ret);
+			return CMD_RET_FAILURE;
+		}
+
+		ret = env_save();
+		if (ret) {
+			printf("Error: failed to persist ethaddr to boot0 environment (%d)!\n", ret);
+			return CMD_RET_FAILURE;
+		}
+
+		printf("Generated and saved persistent ethaddr: %s\n", formatted);
+		return CMD_RET_SUCCESS;
+	}
+
+	if (argc == 3 && strcmp(argv[1], "set") == 0) {
+		uchar enetaddr[6];
+		char formatted[18];
+		int ret;
+
+		if (parse_and_validate_mac(argv[2], enetaddr) != 0)
+			return CMD_RET_FAILURE;
+
+		snprintf(formatted, sizeof(formatted), "%02x:%02x:%02x:%02x:%02x:%02x",
+			 enetaddr[0], enetaddr[1], enetaddr[2],
+			 enetaddr[3], enetaddr[4], enetaddr[5]);
+
+		ret = env_set("ethaddr", formatted);
+		if (ret) {
+			printf("Error: failed to set ethaddr in environment (%d).\n", ret);
+			return CMD_RET_FAILURE;
+		}
+
+		ret = env_save();
+		if (ret) {
+			printf("Error: failed to persist ethaddr to boot0 environment (%d)!\n", ret);
+			return CMD_RET_FAILURE;
+		}
+
+		printf("Persistent ethaddr set and saved: %s\n", formatted);
+		return CMD_RET_SUCCESS;
+	}
+
+	return CMD_RET_USAGE;
+}
+
+int ambarella_board_mac_init(void)
+{
+	uchar enetaddr[6];
+	char formatted[18];
+	const char *env_mac;
+	int ret;
+
+	env_mac = env_get("ethaddr");
+	if (env_mac && *env_mac) {
+		string_to_enetaddr(env_mac, enetaddr);
+		if (is_valid_ethaddr(enetaddr)) {
+			/* Already valid and persistent */
+			return 0;
+		}
+		printf("Warning: existing ethaddr '%s' is invalid.\n", env_mac);
+	}
+
+	/* Absent or invalid: generate one random locally administered unicast address */
+	net_random_ethaddr(enetaddr);
+	snprintf(formatted, sizeof(formatted), "%02x:%02x:%02x:%02x:%02x:%02x",
+		 enetaddr[0], enetaddr[1], enetaddr[2],
+		 enetaddr[3], enetaddr[4], enetaddr[5]);
+
+	printf("Generated one-time persistent MAC address: %s\n", formatted);
+	ret = env_set("ethaddr", formatted);
+	if (ret) {
+		printf("ERROR: Failed to set ethaddr in environment (%d)!\n", ret);
+		return ret;
+	}
+
+	ret = env_save();
+	if (ret) {
+		printf("ERROR: Failed to persist ethaddr to boot0 environment (%d)!\n", ret);
+		return ret;
+	}
+
+	printf("Saved persistent ethaddr to boot0 environment.\n");
 	return 0;
 }

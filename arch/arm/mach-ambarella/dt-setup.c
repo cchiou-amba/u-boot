@@ -9,6 +9,7 @@
 #include <asm/armv8/mmu.h>
 #include <asm/arch/soc.h>
 #include <asm/arch/misc.h>
+#include <asm/arch/cortex.h>
 #include <asm/io.h>
 #include <linux/bitops.h>
 
@@ -274,6 +275,15 @@ int ft_system_setup(void *blob, struct bd_info *bd)
 		printf("fdt_setprop_string: %s\n", fdt_strerror(rval));
 		return rval;
 	}
+
+#if defined(CONFIG_ARCH_AMBARELLA_N1_655) && defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
+	rval = fdt_update_cpux(blob, 0);
+	if (rval < 0) {
+		printf("fdt_update_cpux: %s\n", fdt_strerror(rval));
+		return rval;
+	}
+#endif
+
 	return 0;
 }
 #else

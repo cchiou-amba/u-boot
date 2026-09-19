@@ -68,16 +68,13 @@ unsigned long long memparse(const char *ptr, char **retptr)
 	return size;
 }
 
-static int fdt_update_cpux(void *fdt, int verbose)
+int fdt_update_cpux(void *fdt, int verbose)
 {
 	int rval = 0;
 
 #if defined(CONFIG_AMBA_BOOT_SECONDARY_CORTEX)
 	uintptr_t cpux_jump;
 	int offset, cpu;
-
-	if (current_el() != 3)
-		return rval;
 
 	cpux_jump = (uintptr_t)secondary_cortex_jump;
 

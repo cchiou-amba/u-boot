@@ -21,13 +21,32 @@
 #include <linux/err.h>
 #include <linux/kernel.h>
 #include <asm/io.h>
+#include <asm/arch/soc.h>
+#include <asm/gpio.h>
 #include <power/regulator.h>
 #include <dm/pinctrl.h>
 #include "ambarella_eth.h"
 
-#define ETH_SUPPORT_AHB_MDIO (1)
-#define AHBSP_GMII_ADDR_REG (0x20e00240a4)
-#define AHBSP_GMII_DATA_REG (0x20e00240a0)
+#if defined(CONFIG_ARCH_AMBARELLA_CV7)
+#define ETH_SUPPORT_AHB_MDIO	(1)
+#else
+#define ETH_SUPPORT_AHB_MDIO	(0)
+#endif
+#if defined(CONFIG_ARCH_AMBARELLA_CV7)
+#define AHBSP_GMII_ADDR_REG	(0x20e00240a4ULL)
+#define AHBSP_GMII_DATA_REG	(0x20e00240a0ULL)
+#define AHBSP_NON_SEC_CTRL_REG	(0x20e0024060ULL)
+#define RCT_ENET_GTX_CLK_REG	(0x20ed0802b0ULL)
+#define RCT_ENET_CLK_SRC_REG	(0x20ed0806b8ULL)
+#define RCT_AHB_MISC_REG	(0x20ed08021cULL)
+#else
+#define AHBSP_GMII_ADDR_REG	(0xffe00240a4ULL)
+#define AHBSP_GMII_DATA_REG	(0xffe00240a0ULL)
+#define AHBSP_NON_SEC_CTRL_REG	(0xffe0024060ULL)
+#define RCT_ENET_GTX_CLK_REG	(RCT_BASE + 0x2b0)
+#define RCT_ENET_CLK_SRC_REG	(RCT_BASE + 0x6b8)
+#define RCT_AHB_MISC_REG	(RCT_BASE + 0x21c)
+#endif
 
 #if (ETH_SUPPORT_AHB_MDIO == 0)
 static int ambhw_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
@@ -298,14 +317,13 @@ static int amb_adjust_link(struct amb_eth_dev *priv, struct amb_mac_regs *mac_p,
 static void ambarella_eth_phy_clock_init(void)
 {
 	/* rct USE_INTERNAL_GTX_CLK */
-	writel(0x00, (void *)0x20ED0802B0);
+	writel(0x00, (void *)RCT_ENET_GTX_CLK_REG);
 	/* scratchpad AHBSP_NON_SEC_CTRL_REG bit31 enet_gtx_clk_pol */
-	setbits_32((void *)0x20E0024060, 0x80000000);
+	setbits_32((void *)AHBSP_NON_SEC_CTRL_REG, 0x80000000);
 	/* rct ENET_CLK_SRC_SEL_REG  */
-	setbits_32((void *)0x20ED0806B8, 0x1);
+	setbits_32((void *)RCT_ENET_CLK_SRC_REG, 0x1);
 	/* rct AHB_MISC_REG bit5 Controls direction of xx_enet_clk_rx*/
-	setbits_32((void *)0x20ED08021C, 0x20);
-	//printf("%s 0x%x\n", __func__, *(unsigned int *)0x20E0024060);
+	setbits_32((void *)RCT_AHB_MISC_REG, 0x20);
 }
 
 int ambarella_eth_init(struct amb_eth_dev *priv, u8 *enetaddr)
@@ -388,13 +406,38 @@ int ambarella_eth_enable(struct amb_eth_dev *priv)
 
 #define ETH_ZLEN	60
 
+static int ambarella_eth_phy_reset(struct udevice *dev)
+{
+	struct amb_eth_dev *priv = dev_get_priv(dev);
+	struct amb_eth_pdata *pdata = dev_get_platdata(dev);
+	int ret;
+
+	if (!dm_gpio_is_valid(&priv->reset_gpio))
+		return 0;
+
+	ret = dm_gpio_set_value(&priv->reset_gpio, 1);
+	if (ret)
+		return ret;
+	if (pdata->reset_delays[0])
+		udelay(pdata->reset_delays[0]);
+
+	ret = dm_gpio_set_value(&priv->reset_gpio, 0);
+	if (ret)
+		return ret;
+	if (pdata->reset_delays[1])
+		udelay(pdata->reset_delays[1]);
+
+	return 0;
+}
+
 static int amb_phy_init(struct amb_eth_dev *priv, void *dev)
 {
 	struct phy_device *phydev;
-	int phy_addr = -1, ret;
+	int phy_addr = priv->phy_addr, ret;
 
 #ifdef CONFIG_PHY_ADDR
-	phy_addr = CONFIG_PHY_ADDR;
+	if (phy_addr < 0)
+		phy_addr = CONFIG_PHY_ADDR;
 #endif
 
 	phydev = phy_connect(priv->bus, phy_addr, dev, priv->interface);
@@ -586,7 +629,8 @@ static int ambarella_eth_bind(struct udevice *dev)
 
 int ambarella_eth_probe(struct udevice *dev)
 {
-	struct eth_pdata *pdata = dev_get_platdata(dev);
+	struct amb_eth_pdata *amb_pdata = dev_get_platdata(dev);
+	struct eth_pdata *pdata = &amb_pdata->eth_pdata;
 	struct amb_eth_dev *priv = dev_get_priv(dev);
 	ulong iobase = pdata->iobase;
 	ulong ioaddr;
@@ -602,10 +646,16 @@ int ambarella_eth_probe(struct udevice *dev)
 
 	debug("%s, iobase=0x%lx, priv=%p\n", __func__, iobase, priv);
 	ioaddr = iobase;
+	if (ioaddr < DEVICE_SPACE_START)
+		ioaddr = DEVICE_SPACE_START | (ioaddr & (DEVICE_SPACE_SIZE - 1));
 	priv->mac_regs_p = (struct amb_mac_regs *)ioaddr;
 	priv->dma_regs_p = (struct amb_dma_regs *)(ioaddr + ETH_DMA_BASE_OFFSET);
 	priv->interface = pdata->phy_interface;
 	priv->max_speed = pdata->max_speed;
+	priv->phy_addr = amb_pdata->phy_addr;
+	memset(&priv->reset_gpio, 0, sizeof(priv->reset_gpio));
+	gpio_request_by_name(dev, "rst-gpios", 0, &priv->reset_gpio,
+			     GPIOD_IS_OUT);
 
 	ret = amb_mdio_init(dev->name, dev);
 	if (ret) {
@@ -614,6 +664,8 @@ int ambarella_eth_probe(struct udevice *dev)
 	}
 	priv->bus = miiphy_get_dev_by_name(dev->name);
 
+	ambarella_eth_phy_clock_init();
+	ambarella_eth_phy_reset(dev);
 	ret = amb_phy_init(priv, dev);
 	debug("%s, ret=%d\n", __func__, ret);
 	if (!ret)
@@ -652,7 +704,9 @@ int ambarella_eth_of_to_plat(struct udevice *dev)
 {
 	struct amb_eth_pdata *amb_pdata = dev_get_platdata(dev);
 	struct eth_pdata *pdata = &amb_pdata->eth_pdata;
+	struct ofnode_phandle_args phy_args;
 	const char *phy_mode;
+	u32 delay_ms[2];
 	int ret = 0;
 
 	pdata->iobase = dev_read_addr(dev);
@@ -666,6 +720,23 @@ int ambarella_eth_of_to_plat(struct udevice *dev)
 	}
 
 	pdata->max_speed = dev_read_u32_default(dev, "max-speed", 0);
+	amb_pdata->phy_addr = -1;
+	amb_pdata->reset_delays[0] = 150000;
+	amb_pdata->reset_delays[1] = 100000;
+
+	if (!dev_read_phandle_with_args(dev, "phy-handle", NULL, 0, 0,
+					&phy_args)) {
+		amb_pdata->phy_addr = ofnode_read_u32_default(phy_args.node,
+							      "reg", -1);
+	}
+
+	if (!dev_read_u32_array(dev, "rst-gpios-delay", delay_ms, 2)) {
+		amb_pdata->reset_delays[0] = delay_ms[0] * 1000;
+		amb_pdata->reset_delays[1] = delay_ms[1] * 1000;
+	} else {
+		dev_read_u32_array(dev, "snps,reset-delays-us",
+				   amb_pdata->reset_delays, 3);
+	}
 
 	return ret;
 }

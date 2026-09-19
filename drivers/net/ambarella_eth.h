@@ -229,11 +229,14 @@ struct amb_eth_dev {
 
 	struct phy_device *phydev;
 	struct mii_dev *bus;
+	struct gpio_desc reset_gpio;
+	int phy_addr;
 };
 
 struct amb_eth_pdata {
 	struct eth_pdata eth_pdata;
 	u32 reset_delays[3];
+	int phy_addr;
 };
 
 #endif

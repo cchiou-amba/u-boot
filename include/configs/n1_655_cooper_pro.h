@@ -19,6 +19,8 @@
  */
 #define CONFIG_SYS_MALLOC_LEN		(8 * SZ_1M)
 
+#define CONFIG_SYS_NONCACHED_MEMORY	SZ_1M
+
 /*
  * Stack top pointer.
  */

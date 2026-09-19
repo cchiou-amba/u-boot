@@ -50,6 +50,9 @@
 #endif
 #include <linux/bitops.h>
 #include <linux/delay.h>
+#if defined(CONFIG_ARCH_AMBARELLA)
+#include <asm/arch/soc.h>
+#endif
 
 /* Core registers */
 
@@ -129,6 +132,7 @@ struct eqos_mac_regs {
 #define EQOS_MAC_MDIO_ADDRESS_CR_SHIFT			8
 #define EQOS_MAC_MDIO_ADDRESS_CR_20_35			2
 #define EQOS_MAC_MDIO_ADDRESS_CR_250_300		5
+#define EQOS_MAC_MDIO_ADDRESS_CR_500_800		7
 #define EQOS_MAC_MDIO_ADDRESS_SKAP			BIT(4)
 #define EQOS_MAC_MDIO_ADDRESS_GOC_SHIFT			2
 #define EQOS_MAC_MDIO_ADDRESS_GOC_READ			3
@@ -327,6 +331,7 @@ struct eqos_priv {
 	struct mii_dev *mii;
 	struct phy_device *phy;
 	int phyaddr;
+	u32 reset_delays[2];
 	u32 max_speed;
 	void *descs;
 	struct eqos_desc *tx_descs;
@@ -751,6 +756,45 @@ static int eqos_start_clks_ambarella(struct udevice *dev)
 	debug("%s: OK\n", __func__);
 	return 0;
 }
+#elif defined(CONFIG_ARCH_AMBARELLA_N1_655)
+static int eqos_start_clks_ambarella(struct udevice *dev)
+{
+	int alias_id;
+	int node = dev_of_offset(dev);
+	const char *prop;
+	void *scr = (void *)(AHBSP_NS_BASE + 0x60);
+
+	debug("%s(dev=%p):\n", __func__, dev);
+
+	/* External GTX, clock source, and RX clock direction (RCT). */
+	writel(0x00, (void *)(RCT_BASE + 0x2b0));
+	setbits_32((void *)(RCT_BASE + 0x6b8), 0x1);
+	setbits_32((void *)(RCT_BASE + 0x21c), 0x20);
+
+	alias_id = dev->seq;
+	prop = fdt_getprop(gd->fdt_blob, node, "amb,tx-clk-invert", NULL);
+	if (prop) {
+		if (alias_id == 0)
+			setbits_32(scr, 1 << 31);
+		else if (alias_id == 1)
+			setbits_32(scr, 1 << 28);
+	}
+
+	prop = fdt_getprop(gd->fdt_blob, node, "amb,rx-clk-invert", NULL);
+	if (prop) {
+		if (alias_id == 0)
+			setbits_32(scr, 1 << 0);
+		else if (alias_id == 1)
+			setbits_32(scr, 1 << 11);
+	}
+
+	prop = fdt_getprop(gd->fdt_blob, node, "amb,2nd-ref-clk-50mhz", NULL);
+	if (prop)
+		setbits_32(scr, 1 << 23);
+
+	debug("%s: OK\n", __func__);
+	return 0;
+}
 #else
 static int eqos_start_clks_ambarella(struct udevice *dev)
 {
@@ -916,6 +960,30 @@ static int eqos_start_resets_imx(struct udevice *dev)
 
 static int eqos_start_resets_ambarella(struct udevice *dev)
 {
+	struct eqos_priv *eqos = dev_get_priv(dev);
+	int ret;
+
+	/*
+	 * There is no reset controller for this instance, so the MAC and DMA
+	 * keep the state left behind by the previous eqos_stop(). Reset them
+	 * here; eqos_start() waits for SWR to clear and reprograms the block.
+	 */
+	setbits_le32(&eqos->dma_regs->mode, EQOS_DMA_MODE_SWR);
+
+	/* The PHY keeps its configuration across MAC restarts. */
+	if (eqos->phy || !dm_gpio_is_valid(&eqos->phy_reset_gpio))
+		return 0;
+
+	ret = dm_gpio_set_value(&eqos->phy_reset_gpio, 1);
+	if (ret)
+		return ret;
+	mdelay((eqos->reset_delays[0] ? eqos->reset_delays[0] : 150000) / 1000);
+
+	ret = dm_gpio_set_value(&eqos->phy_reset_gpio, 0);
+	if (ret)
+		return ret;
+	mdelay((eqos->reset_delays[1] ? eqos->reset_delays[1] : 100000) / 1000);
+
 	return 0;
 }
 
@@ -1046,7 +1114,7 @@ static ulong eqos_get_tick_clk_rate_imx(struct udevice *dev)
 
 static ulong eqos_get_tick_clk_rate_ambarella(struct udevice *dev)
 {
-	return 0;
+	return 250000000;
 }
 
 static int eqos_calibrate_pads_stm32(struct udevice *dev)
@@ -1422,6 +1490,8 @@ static int eqos_start(struct udevice *dev)
 #ifdef DWC_NET_PHYADDR
 		addr = DWC_NET_PHYADDR;
 #endif
+		if (eqos->phyaddr >= 0)
+			addr = eqos->phyaddr;
 		eqos->phy = phy_connect(eqos->mii, addr, dev,
 					eqos->config->interface(dev));
 		if (!eqos->phy) {
@@ -2146,7 +2216,9 @@ static phy_interface_t eqos_get_interface_imx(struct udevice *dev)
 static int eqos_probe_resources_ambarella(struct udevice *dev)
 {
 	struct eqos_priv *eqos = dev_get_priv(dev);
+	struct ofnode_phandle_args phy_args;
 	phy_interface_t interface;
+	u32 delay_ms[2];
 
 	debug("%s(dev=%p):\n", __func__, dev);
 
@@ -2155,6 +2227,24 @@ static int eqos_probe_resources_ambarella(struct udevice *dev)
 	if (interface == PHY_INTERFACE_MODE_NONE) {
 		pr_err("Invalid PHY interface\n");
 		return -EINVAL;
+	}
+
+	eqos->phyaddr = -1;
+	eqos->reset_delays[0] = 150000;
+	eqos->reset_delays[1] = 100000;
+	memset(&eqos->phy_reset_gpio, 0, sizeof(eqos->phy_reset_gpio));
+
+	if (!dev_read_phandle_with_args(dev, "phy-handle", NULL, 0, 0,
+					&phy_args)) {
+		eqos->phyaddr = ofnode_read_u32_default(phy_args.node,
+							"reg", -1);
+	}
+
+	gpio_request_by_name(dev, "rst-gpios", 0, &eqos->phy_reset_gpio,
+			     GPIOD_IS_OUT);
+	if (!dev_read_u32_array(dev, "rst-gpios-delay", delay_ms, 2)) {
+		eqos->reset_delays[0] = delay_ms[0] * 1000;
+		eqos->reset_delays[1] = delay_ms[1] * 1000;
 	}
 
 	debug("%s: OK\n", __func__);
@@ -2242,6 +2332,11 @@ static int eqos_probe(struct udevice *dev)
 		pr_err("dev_read_addr() failed");
 		return -ENODEV;
 	}
+#if defined(CONFIG_ARCH_AMBARELLA_N1_655)
+	if (eqos->regs < DEVICE_SPACE_START)
+		eqos->regs = DEVICE_SPACE_START |
+			(eqos->regs & (DEVICE_SPACE_SIZE - 1));
+#endif
 	eqos->mac_regs = (void *)(eqos->regs + EQOS_MAC_REGS_BASE);
 	eqos->mtl_regs = (void *)(eqos->regs + EQOS_MTL_REGS_BASE);
 	eqos->dma_regs = (void *)(eqos->regs + EQOS_DMA_REGS_BASE);
@@ -2269,8 +2364,8 @@ static int eqos_probe(struct udevice *dev)
 			ret = -ENOMEM;
 			goto err_remove_resources_tegra;
 		}
-#if defined(CONFIG_ARCH_AMBARELLA_CV75)
-		/* if use controller's pins, eqos_mdio can be used */
+#if defined(CONFIG_ARCH_AMBARELLA_CV75) || defined(CONFIG_ARCH_AMBARELLA_N1_655)
+		/* MAC-side MDIO (snps,dwmac-mdio in the DT). */
 		eqos->mii->read = eqos_mdio_read;
 		eqos->mii->write = eqos_mdio_write;
 #else
@@ -2435,7 +2530,7 @@ struct eqos_config __maybe_unused eqos_ambarella_config = {
 	.mdio_wait = 10000,
 	.swr_wait = 50,
 	.config_mac = EQOS_MAC_RXQ_CTRL0_RXQ0EN_ENABLED_DCB,
-	.config_mac_mdio = EQOS_MAC_MDIO_ADDRESS_CR_250_300,
+	.config_mac_mdio = EQOS_MAC_MDIO_ADDRESS_CR_500_800,
 	.interface = eqos_get_interface_ambarella,
 	.ops = &eqos_ambarella_ops
 };
